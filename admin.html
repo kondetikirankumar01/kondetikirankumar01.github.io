@@ -1,0 +1,4970 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Lock & Load Club | Admin Dashboard</title>
+
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://gfrzvwpyxwryjypqpuzk.supabase.co" crossorigin>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #090909;
+            color: white;
+        }
+
+
+
+        /* ================= ADMIN GATE ================= */
+        #adminGate {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            background: #090909;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #adminGate .gate-box {
+            width: 100%;
+            max-width: 400px;
+            background: #151515;
+            border: 1px solid #292929;
+            border-radius: 12px;
+            padding: 28px;
+        }
+        #adminGate h2 { color: #ffd400; margin-bottom: 8px; }
+        #adminGate p { color: #999; font-size: 14px; margin-bottom: 18px; line-height: 1.5; }
+        #adminGate input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            background: #0d0d0d;
+            border: 1px solid #333;
+            border-radius: 7px;
+            color: #fff;
+        }
+        #adminGate .primary { width: 100%; }
+        #adminGate .secondary { width: 100%; margin-top: 10px; }
+        #adminGateError { color: #ff7777; font-size: 13px; margin-bottom: 12px; min-height: 16px; }
+
+        /* ================= HEADER ================= */
+
+        header {
+            background: #111;
+            border-bottom: 1px solid #292929;
+            padding: 16px 25px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 25px;
+            font-weight: 900;
+            color: #ffd400;
+        }
+
+        .logo span {
+            color: white;
+        }
+
+        .admin-label {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .logout {
+            background: #292929;
+            color: white;
+            border: 1px solid #444;
+            padding: 9px 15px;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+
+
+        /* ================= LAYOUT ================= */
+
+        .layout {
+            display: flex;
+            min-height: calc(100vh - 65px);
+        }
+
+
+        /* ================= SIDEBAR ================= */
+
+        .sidebar {
+            width: 230px;
+            background: #111;
+            border-right: 1px solid #292929;
+            padding: 20px 12px;
+        }
+
+        .sidebar button {
+            width: 100%;
+            padding: 13px;
+            margin-bottom: 7px;
+
+            text-align: left;
+
+            background: transparent;
+            color: #aaa;
+
+            border: none;
+            border-radius: 7px;
+
+            cursor: pointer;
+        }
+
+        .sidebar button:hover,
+        .sidebar button.active {
+            background: #ffd400;
+            color: #000;
+            font-weight: bold;
+        }
+
+
+        /* ================= CONTENT ================= */
+
+        .content {
+            flex: 1;
+            padding: 35px;
+            overflow-x: auto;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+
+        /* ================= STATS ================= */
+
+        .stats {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(200px, 1fr)
+                );
+
+            gap: 18px;
+        }
+
+        .stat {
+            background: #151515;
+            border: 1px solid #292929;
+            border-radius: 12px;
+            padding: 22px;
+        }
+
+        .stat-title {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .stat-number {
+            font-size: 35px;
+            font-weight: bold;
+            color: #ffd400;
+            margin-top: 10px;
+        }
+
+
+        /* ================= TOOLBAR ================= */
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .primary {
+            background: linear-gradient(
+                90deg,
+                #ffd400,
+                #ff8a00
+            );
+
+            border: none;
+            color: #000;
+
+            padding: 12px 18px;
+
+            border-radius: 7px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .secondary {
+            background: #252525;
+            color: white;
+
+            border: 1px solid #444;
+
+            padding: 9px 13px;
+
+            border-radius: 7px;
+
+            cursor: pointer;
+        }
+
+        .danger {
+            background: #471717;
+            color: #ff7777;
+
+            border: 1px solid #703333;
+
+            padding: 8px 12px;
+
+            border-radius: 6px;
+
+            cursor: pointer;
+        }
+
+
+        /* ================= TABLE ================= */
+
+        .table-container {
+            overflow-x: auto;
+            background: #151515;
+
+            border: 1px solid #292929;
+
+            border-radius: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 950px;
+        }
+
+        th,
+        td {
+            padding: 13px;
+            border-bottom: 1px solid #292929;
+            text-align: left;
+        }
+
+        th {
+            color: #999;
+            font-size: 13px;
+        }
+
+        td {
+            color: #ddd;
+        }
+
+
+        /* ================= BADGES ================= */
+
+        .badge {
+            display: inline-block;
+
+            padding: 5px 9px;
+
+            border-radius: 5px;
+
+            font-size: 12px;
+        }
+
+        .open {
+            background: #143d26;
+            color: #35dd79;
+        }
+
+        .pending {
+            background: #493d08;
+            color: #ffd400;
+        }
+
+        .paid {
+            background: #143d26;
+            color: #35dd79;
+        }
+
+        .rejected {
+            background: #481919;
+            color: #ff6666;
+        }
+
+
+        /* ================= MODAL ================= */
+
+        .modal {
+            display: none;
+
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 1000;
+
+            background: rgba(0, 0, 0, .82);
+
+            padding: 20px;
+
+            overflow-y: auto;
+        }
+
+        .modal-box {
+            max-width: 600px;
+
+            margin: 40px auto;
+
+            background: #151515;
+
+            border: 1px solid #3a3a3a;
+
+            border-radius: 15px;
+
+            padding: 28px;
+
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+
+            right: 18px;
+            top: 12px;
+
+            background: transparent;
+            border: none;
+
+            color: #aaa;
+
+            font-size: 28px;
+
+            cursor: pointer;
+        }
+
+        .modal-box h2 {
+            margin-bottom: 20px;
+            color: #ffd400;
+        }
+
+        label {
+            display: block;
+
+            color: #bbb;
+
+            font-size: 14px;
+
+            margin-top: 14px;
+            margin-bottom: 6px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+
+            background: #0d0d0d;
+
+            color: white;
+
+            border: 1px solid #333;
+
+            border-radius: 7px;
+
+            padding: 11px;
+
+            outline: none;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: #ffd400;
+        }
+
+        .modal-actions {
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 25px;
+        }
+
+
+        /* ================= LOADING ================= */
+
+        .loading {
+            color: #888;
+            padding: 20px;
+        }
+
+
+        /* ================= MOBILE ================= */
+
+        @media(max-width: 700px) {
+
+            .layout {
+                display: block;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #292929;
+
+                display: flex;
+                overflow-x: auto;
+            }
+
+            .sidebar button {
+                min-width: 140px;
+                margin-right: 5px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+        }
+
+    
+        .llc-admin-stats-grid {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+        @media (max-width: 1100px) {
+            .llc-admin-stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        @media (max-width: 700px) {
+            .llc-admin-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- ================= HEADER ================= -->
+
+<div id="adminGate">
+    <div class="gate-box">
+        <h2>Admin Login</h2>
+        <p id="adminGateMessage">Sign in with your administrator account.</p>
+        <div id="adminGateForm">
+            <input id="adminGateEmail" type="email" placeholder="Admin email" autocomplete="username">
+            <input id="adminGatePassword" type="password" placeholder="Password" autocomplete="current-password"
+                   onkeydown="if(event.key==='Enter') adminGateLogin()">
+            <div id="adminGateError"></div>
+            <button class="primary" onclick="adminGateLogin()">LOGIN</button>
+        </div>
+        <button id="adminGateSwitch" class="secondary" style="display:none;" onclick="adminGateSwitchAccount()">Sign out &amp; use another account</button>
+        <button class="secondary" onclick="window.location.href='/'">Back to main site</button>
+    </div>
+</div>
+
+<header>
+
+    <div class="logo">
+        LOCK <span>&amp; LOAD CLUB</span>
+    </div>
+
+    <div>
+        <span class="admin-label">
+            ADMIN PANEL
+        </span>
+
+        &nbsp;
+
+        <button
+            class="logout"
+            onclick="logout()">
+
+            Logout
+
+        </button>
+    </div>
+
+</header>
+
+
+<!-- ================= MAIN LAYOUT ================= -->
+
+<div class="layout">
+
+
+    <!-- ================= SIDEBAR ================= -->
+
+    <aside class="sidebar">
+
+        <button
+            class="active"
+            onclick="showSection('dashboard', this)">
+
+            📊 Dashboard
+
+        </button>
+
+
+        <button
+            onclick="showSection('tournaments', this)">
+
+            🏆 Tournaments
+
+        </button>
+
+
+        <button
+            onclick="showSection('registrations', this)">
+
+            👥 Registrations
+
+        </button>
+
+
+        <button
+            onclick="showSection('matches', this)">
+
+            🎮 Matches
+
+        </button>
+
+
+        <button
+            onclick="showSection('results', this)">
+
+            📈 Results
+
+        </button>
+
+
+        <button
+            onclick="showSection('announcements', this)">
+
+            📢 Announcements
+
+        </button>
+
+    </aside>
+
+
+    <!-- ================= CONTENT ================= -->
+
+    <main class="content">
+
+
+        <!-- ================= DASHBOARD ================= -->
+
+        <section
+            id="dashboard"
+            class="section active">
+
+            <h1>Dashboard</h1>
+
+            <p class="subtitle">
+                Live overview of active tournaments
+            </p>
+
+
+            <div class="stats llc-admin-stats-grid">
+
+                <div class="stat"><div class="stat-title">Total Tournaments</div><div class="stat-number" id="statTournaments">0</div></div>
+                <div class="stat"><div class="stat-title">Open Registration</div><div class="stat-number" id="statOpenTournaments">0</div></div>
+                <div class="stat"><div class="stat-title">Live Tournaments</div><div class="stat-number" id="statLiveTournaments">0</div></div>
+                <div class="stat"><div class="stat-title">Completed</div><div class="stat-number" id="statCompletedTournaments">0</div></div>
+                <div class="stat"><div class="stat-title">Total Teams</div><div class="stat-number" id="statTeams">0</div></div>
+                <div class="stat"><div class="stat-title">Total Registrations</div><div class="stat-number" id="statRegistrations">0</div></div>
+                <div class="stat"><div class="stat-title">Pending / Review</div><div class="stat-number" id="statPending">0</div></div>
+                <div class="stat"><div class="stat-title">Approved</div><div class="stat-number" id="statApproved">0</div></div>
+                <div class="stat"><div class="stat-title">Rejected</div><div class="stat-number" id="statRejected">0</div></div>
+                <div class="stat"><div class="stat-title">Paid Revenue</div><div class="stat-number" id="statRevenue">₹0</div></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= TOURNAMENTS ================= -->
+
+        <section
+            id="tournaments"
+            class="section">
+
+            <div class="toolbar">
+
+                <div>
+
+                    <h1>
+                        Tournaments
+                    </h1>
+
+                    <p class="subtitle">
+                        Create and manage tournaments
+                    </p>
+
+                </div>
+
+                <button
+                    class="primary"
+                    onclick="openTournamentModal()">
+
+                    + Create Tournament
+
+                </button>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Name</th>
+
+                            <th>Game</th>
+
+                            <th>Entry</th>
+
+                            <th>Prize</th>
+
+                            <th>Date</th>
+
+                            <th>Status</th>
+
+                            <th>Actions</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="tournamentTable">
+
+                        <tr>
+
+                            <td colspan="7">
+                                <div class="loading">
+                                    Loading...
+                                </div>
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= REGISTRATIONS ================= -->
+
+        <section
+            id="registrations"
+            class="section">
+
+            <h1>
+                Registrations
+            </h1>
+
+            <div class="toolbar" style="margin-top:10px; margin-bottom:20px;">
+                <p class="subtitle" style="margin:0;">
+                    Manage tournament registrations and payments
+                </p>
+                <button class="secondary" type="button" onclick="exportRegistrationsXLSX()">
+                    ⬇ EXPORT REGISTRATIONS (.XLSX)
+                </button>
+            </div>
+
+            <div class="registration-filters" style="background:#151515;border:1px solid #292929;border-radius:12px;padding:16px;margin-bottom:20px;">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;align-items:end;">
+                    <div>
+                        <label style="margin-top:0;">Tournament</label>
+                        <select id="registrationTournamentFilter" onchange="applyRegistrationFilters()">
+                            <option value="">All Tournaments</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Payment</label>
+                        <select id="registrationPaymentFilter" onchange="applyRegistrationFilters()">
+                            <option value="">All Payments</option>
+                            <option value="pending">Pending</option>
+                            <option value="not_paid">Not Paid</option>
+                            <option value="paid">Paid</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Registration Status</label>
+                        <select id="registrationStatusFilter" onchange="applyRegistrationFilters()">
+                            <option value="">All Statuses</option>
+                            <option value="registered">Registered</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button class="secondary" type="button" onclick="clearRegistrationFilters()" style="width:100%;">↻ Clear Filters</button>
+                    </div>
+                </div>
+                <div id="registrationFilterSummary" style="margin-top:12px;color:#888;font-size:13px;">Showing all registrations</div>
+            </div>
+
+            <div id="registrationTeamManager" style="background:#151515;border:1px solid #292929;border-radius:12px;padding:16px;margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;">
+                    <div>
+                        <h3 style="margin:0 0 5px;">Registered Teams</h3>
+                        <div id="registrationTeamManagerInfo" style="color:#888;font-size:13px;">Select a tournament to manage its registered teams.</div>
+                    </div>
+                    <button class="primary" type="button" onclick="openAddRegisteredTeamModal()">＋ ADD REGISTERED TEAM</button>
+                </div>
+                <div id="registeredTeamsManagerTable" style="margin-top:14px;overflow:auto;">
+                    <div class="loading">Select a tournament to view registered teams.</div>
+                </div>
+            </div>
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Team</th>
+
+                            <th>Tournament</th>
+
+                            <th>Captain</th>
+
+                            <th>UID</th>
+
+                            <th>Payment</th>
+
+                            <th>Status</th>
+
+                            <th>Actions</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="registrationTable">
+
+                        <tr>
+
+                            <td colspan="7">
+
+                                <div class="loading">
+                                    Loading...
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= MATCHES ================= -->
+
+        <section
+            id="matches"
+            class="section">
+
+            <div class="toolbar">
+                <div>
+                    <h1>Matches</h1>
+                    <p class="subtitle">
+                        Create and manage tournament matches
+                    </p>
+                </div>
+
+                <button
+                    class="primary"
+                    onclick="openMatchModal()">
+                    + Create Match
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tournament</th>
+                            <th>Round</th>
+                            <th>Match</th>
+                            <th>Map</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Registrations</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="matchTable">
+                        <tr>
+                            <td colspan="8">
+                                <div class="loading">Loading matches...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+
+        <!-- ================= RESULTS ================= -->
+
+        <section
+            id="results"
+            class="section">
+
+            <div class="toolbar">
+                <div>
+                    <h1>Results &amp; Leaderboard</h1>
+                    <p class="subtitle">Enter match scores and view the tournament leaderboard</p>
+                </div>
+
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <button class="secondary" type="button" onclick="exportResultsXLSX()">
+                        ⬇ EXPORT RESULTS (.XLSX)
+                    </button>
+                    <button class="primary" onclick="openResultModal()">
+                        + Add Result
+                    </button>
+                </div>
+            </div>
+
+            <div class="toolbar" style="margin-top:20px;">
+                <div style="min-width:260px; width:360px;">
+                    <label style="display:block; margin-bottom:6px;">Tournament</label>
+                    <select id="leaderboardTournament" onchange="loadLeaderboard()">
+                        <option value="">Select tournament</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container" style="margin-top:20px;">
+                <table>
+                    <thead><tr>
+                        <th>Rank</th><th>Team</th><th>Matches</th>
+                        <th>Placement</th><th>Kills</th><th>Total</th>
+                    </tr></thead>
+                    <tbody id="leaderboardTable">
+                        <tr><td colspan="6"><div class="loading">Select a tournament to view the leaderboard.</div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 style="margin-top:30px;">Match Results</h2>
+            <div class="table-container">
+                <table>
+                    <thead><tr>
+                        <th>Match</th><th>Team</th><th>Placement</th>
+                        <th>Placement Points</th><th>Kill Points</th><th>Total</th><th>Actions</th>
+                    </tr></thead>
+                    <tbody id="resultTable">
+                        <tr><td colspan="7"><div class="loading">Select a tournament to view results.</div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+
+
+        <!-- ================= ANNOUNCEMENTS ================= -->
+
+        <section
+            id="announcements"
+            class="section">
+
+            <div class="toolbar">
+
+                <div>
+                    <h1>Announcements</h1>
+
+                    <p class="subtitle">
+                        Publish updates for tournament players
+                    </p>
+                </div>
+
+                <button
+                    class="primary"
+                    onclick="openAnnouncementModal()">
+                    + New Announcement
+                </button>
+
+            </div>
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Message</th>
+                            <th>Published</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="announcementTable">
+
+                        <tr>
+                            <td colspan="4">
+                                <div class="loading">
+                                    Loading announcements...
+                                </div>
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+</div>
+
+
+<!-- ================= PAYMENT SCREENSHOT MODAL ================= -->
+<div id="paymentScreenshotModal" class="modal" onclick="closePaymentScreenshot(event)">
+    <div class="modal-box" style="max-width:900px; text-align:center;" onclick="event.stopPropagation()">
+        <button class="close" onclick="closePaymentScreenshot()">×</button>
+        <h2>Payment Screenshot</h2>
+        <div id="paymentScreenshotContent" style="margin-top:15px;">
+            <div class="loading">Loading...</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================= MATCH MODAL ================= -->
+
+<div id="matchModal" class="modal">
+    <div class="modal-box">
+        <button class="close" onclick="closeMatchModal()">×</button>
+
+        <h2 id="matchModalTitle">Create Match</h2>
+
+        <label>Tournament</label>
+        <select id="matchTournament"></select>
+
+        <label>Round</label>
+        <input id="matchRound" placeholder="Round 1">
+
+        <label>Match Number</label>
+        <input id="matchNumber" type="number" min="1" value="1">
+
+        <label>Map</label>
+        <select id="matchMap">
+            <option value="Bermuda">Bermuda</option>
+            <option value="Purgatory">Purgatory</option>
+            <option value="Kalahari">Kalahari</option>
+            <option value="NeXTerra">NeXTerra</option>
+            <option value="Alpine">Alpine</option>
+        </select>
+
+        <label>Date</label>
+        <input id="matchDate" type="date">
+
+        <label>Time</label>
+        <input id="matchTime" type="time">
+
+        <label>Status</label>
+        <select id="matchStatus">
+            <option value="scheduled">Scheduled</option>
+            <option value="live">Live</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+        </select>
+
+        <label>Match Link (Free Fire / room link)</label>
+        <input id="matchLink" type="url" placeholder="https://...">
+
+        <div id="matchModalMessage" class="modal-message"></div>
+
+        <div class="modal-actions">
+            <button class="secondary" onclick="closeMatchModal()">Cancel</button>
+            <button class="primary" onclick="saveMatch()">SAVE MATCH</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= RESULT MODAL ================= -->
+<div id="resultModal" class="modal">
+    <div class="modal-box">
+        <button class="close" onclick="closeResultModal()">×</button>
+        <h2 id="resultModalTitle">Add Result</h2>
+        <label>Match</label>
+        <select id="resultMatch" onchange="populateResultTeams()"></select>
+        <label>Team</label>
+        <select id="resultTeam"></select>
+        <label>Placement</label>
+        <input id="resultPlacement" type="number" min="1" placeholder="1">
+        <label>Placement Points</label>
+        <input id="resultPlacementPoints" type="number" min="0" value="0">
+        <label>Kill Points</label>
+        <input id="resultKillPoints" type="number" min="0" value="0">
+        <div id="resultTotalPreview" class="modal-message">Total Points: 0</div>
+        <div id="resultModalMessage" class="modal-message"></div>
+        <div class="modal-actions">
+            <button class="secondary" onclick="closeResultModal()">Cancel</button>
+            <button class="primary" onclick="saveResult()">SAVE RESULT</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= ANNOUNCEMENT MODAL ================= -->
+
+<div
+    id="announcementModal"
+    class="modal">
+
+    <div class="modal-box">
+
+        <button
+            class="close"
+            onclick="closeAnnouncementModal()">
+            ×
+        </button>
+
+        <h2 id="announcementModalTitle">
+            New Announcement
+        </h2>
+
+        <label>Title</label>
+
+        <input
+            id="announcementTitle"
+            placeholder="Tournament Update">
+
+        <label>Message</label>
+
+        <textarea
+            id="announcementMessage"
+            placeholder="Enter the announcement for players..."></textarea>
+
+        <label>Announcement Image <span style="color:#777;font-weight:400;">(Optional)</span></label>
+
+        <input
+            id="announcementImage"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif">
+
+        <div
+            id="announcementImagePreview"
+            style="margin-top:12px;">
+        </div>
+
+        <small style="color:#888;">
+            Optional — JPG, PNG, WEBP or GIF. Maximum size: 5 MB.
+        </small>
+
+        <div
+            id="announcementModalMessage"
+            class="modal-message"></div>
+
+        <div class="modal-actions">
+
+            <button
+                class="secondary"
+                onclick="closeAnnouncementModal()">
+                Cancel
+            </button>
+
+            <button
+                class="primary"
+                onclick="saveAnnouncement()">
+                PUBLISH
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= ADD REGISTERED TEAM MODAL ================= -->
+<div id="addRegisteredTeamModal" class="modal">
+    <div class="modal-box" style="max-width:720px;">
+        <button class="close" onclick="closeAddRegisteredTeamModal()">×</button>
+        <h2>Add Registered Team</h2>
+        <p style="color:#888;font-size:13px;">
+            Add an existing team or create a new team directly for this registration.
+            You can also change the team name before adding it.
+        </p>
+
+        <label>Tournament</label>
+        <select id="adminAddRegistrationTournament"></select>
+
+        <label>Team</label>
+        <select id="adminAddRegistrationTeam" onchange="handleAdminTeamSelectionChange()">
+            <option value="">Loading teams...</option>
+        </select>
+
+        <label>Team Name</label>
+        <input
+            id="adminAddRegistrationTeamName"
+            placeholder="Enter team name"
+            maxlength="100">
+
+        <div id="adminNewTeamFields" style="display:none;">
+            <label>Captain IGN (optional)</label>
+            <input id="adminAddRegistrationCaptainIGN" placeholder="Captain IGN">
+
+            <label>Captain Free Fire UID (optional)</label>
+            <input id="adminAddRegistrationCaptainUID" inputmode="numeric" maxlength="20" placeholder="Captain UID">
+        </div>
+
+        <label>Payment Status</label>
+        <select id="adminAddRegistrationPayment">
+            <option value="pending">Pending</option>
+            <option value="not_paid">Not Paid</option>
+            <option value="paid" selected>Paid</option>
+        </select>
+
+        <label>Registration Status</label>
+        <select id="adminAddRegistrationStatus">
+            <option value="registered">Registered</option>
+            <option value="approved" selected>Approved</option>
+            <option value="rejected">Rejected</option>
+        </select>
+
+        <label>Payment UTR (optional)</label>
+        <input id="adminAddRegistrationUTR" inputmode="numeric" maxlength="12" placeholder="Optional 12-digit UTR">
+
+        <div id="addRegisteredTeamMessage" style="margin-top:12px;color:#aaa;font-size:13px;"></div>
+
+        <div class="modal-actions">
+            <button class="primary" onclick="saveAdminRegisteredTeam()">ADD TEAM</button>
+            <button class="secondary" onclick="closeAddRegisteredTeamModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= TOURNAMENT MODAL ================= -->
+
+<div
+    id="tournamentModal"
+    class="modal">
+
+    <div class="modal-box">
+
+        <button
+            class="close"
+            onclick="closeTournamentModal()">
+
+            ×
+
+        </button>
+
+
+        <h2 id="modalTitle">
+            Create Tournament
+        </h2>
+
+
+        <label>
+            Tournament Name
+        </label>
+
+        <input
+            id="tournamentName"
+            placeholder="LOCK & LOAD">
+
+
+        <label>
+            Description
+        </label>
+
+        <textarea
+            id="tournamentDescription"
+            placeholder="Free Fire MAX Squad Tournament">
+        </textarea>
+
+
+        <label>
+            Game
+        </label>
+
+        <input
+            id="tournamentGame"
+            value="Free Fire MAX">
+
+
+        <label>
+            Entry Fee
+        </label>
+
+        <input
+            id="tournamentEntry"
+            type="number"
+            min="0"
+            value="100">
+
+
+        <label>
+            Prize Pool
+        </label>
+
+        <input
+            id="tournamentPrize"
+            type="number"
+            min="0"
+            value="1000">
+
+
+        <label>
+            Maximum Teams
+        </label>
+
+        <input
+            id="tournamentTeams"
+            type="number"
+            min="1"
+            value="12">
+
+
+        <label>
+            Tournament Date
+        </label>
+
+        <input
+            id="tournamentDate"
+            type="date">
+
+
+        <label>
+            Tournament Time
+        </label>
+
+        <input
+            id="tournamentTime"
+            type="time">
+
+
+        <label>
+            Status
+        </label>
+
+        <select id="tournamentStatus">
+
+            <option value="open">
+                Open
+            </option>
+
+            <option value="closed">
+                Closed
+            </option>
+
+            <option value="completed">
+                Completed
+            </option>
+
+            <option value="cancelled">
+                Cancelled
+            </option>
+
+        </select>
+
+        <label>Registration Access</label>
+        <select id="tournamentRegistrationOpen">
+            <option value="true">Registrations Open</option>
+            <option value="false">Registrations Locked</option>
+        </select>
+
+        <div style="margin-top:18px;padding:14px;background:#0d0d0d;border:1px solid #333;border-radius:10px;">
+            <div style="color:#ffd400;font-weight:bold;margin-bottom:8px;">⏰ Registration Schedule</div>
+            <div style="color:#888;font-size:12px;margin-bottom:10px;">Set when players can start and stop registering. Times use your browser's local time.</div>
+            <label style="margin-top:8px;">Registration Opens</label>
+            <input id="registrationStartAt" type="datetime-local">
+            <label>Registration Closes</label>
+            <input id="registrationEndAt" type="datetime-local">
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                class="primary"
+                onclick="saveTournament()">
+
+                SAVE TOURNAMENT
+
+            </button>
+
+
+            <button
+                class="secondary"
+                onclick="closeTournamentModal()">
+
+                Cancel
+
+            </button>
+
+        </div>
+
+
+        <div
+            id="modalMessage"
+            class="loading">
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* ============================================
+   SUPABASE
+============================================ */
+
+const SUPABASE_URL = "https://gfrzvwpyxwryjypqpuzk.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_e3BaHTjrCVL6hd5Fe1RcIw_dHsJ0bwB";
+
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY,
+        {
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true
+            }
+        }
+    );
+
+
+/* ============================================
+   STATE
+============================================ */
+
+let editingTournamentId = null;
+
+
+
+/* ============================================
+   ADMIN GATE (replaces silent redirects to "/")
+============================================ */
+
+function showAdminGate(mode, message) {
+    const gate = document.getElementById("adminGate");
+    if (!gate) return;
+    gate.style.display = "flex";
+    document.getElementById("adminGateMessage").textContent = message;
+    document.getElementById("adminGateForm").style.display = mode === "login" ? "block" : "none";
+    document.getElementById("adminGateSwitch").style.display = mode === "denied" ? "block" : "none";
+}
+
+async function adminGateLogin() {
+    const email = document.getElementById("adminGateEmail").value.trim();
+    const password = document.getElementById("adminGatePassword").value;
+    const errorBox = document.getElementById("adminGateError");
+    errorBox.textContent = "";
+
+    if (!email || !password) {
+        errorBox.textContent = "Enter email and password.";
+        return;
+    }
+
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (error) {
+        errorBox.textContent = error.message;
+        return;
+    }
+
+    window.location.reload();
+}
+
+async function adminGateSwitchAccount() {
+    await supabaseClient.auth.signOut();
+    window.location.reload();
+}
+
+
+/* ============================================
+   REGISTRATION SCHEDULE STATE (admin copy)
+============================================ */
+
+function getRegistrationScheduleState(tournament) {
+
+    const fmt = value => {
+        try {
+            return new Date(value).toLocaleString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        } catch (e) {
+            return "";
+        }
+    };
+
+    if (tournament.status !== "open" || tournament.registration_open === false) {
+        return {
+            key: "closed",
+            icon: "🔒",
+            label: "Registration Closed",
+            detail: tournament.registration_open === false
+                ? "Locked by admin"
+                : "Tournament is not open"
+        };
+    }
+
+    const now = Date.now();
+
+    const start = tournament.registration_start_at
+        ? new Date(tournament.registration_start_at).getTime()
+        : null;
+
+    const end = tournament.registration_end_at
+        ? new Date(tournament.registration_end_at).getTime()
+        : null;
+
+    if (start !== null && Number.isFinite(start) && now < start) {
+        return {
+            key: "soon",
+            icon: "⏳",
+            label: "Soon",
+            detail: "Opens " + fmt(start)
+        };
+    }
+
+    if (end !== null && Number.isFinite(end) && now >= end) {
+        return {
+            key: "closed",
+            icon: "🔒",
+            label: "Registration Closed",
+            detail: "Closed " + fmt(end)
+        };
+    }
+
+    return {
+        key: "open",
+        icon: "✅",
+        label: "Registration Open",
+        detail: end !== null && Number.isFinite(end)
+            ? "Closes " + fmt(end)
+            : "No closing time set"
+    };
+}
+
+
+/* ============================================
+   DATETIME-LOCAL HELPERS
+============================================ */
+
+function toDatetimeLocalInput(value) {
+    if (!value) return "";
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return "";
+    const pad = n => String(n).padStart(2, "0");
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
+           "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+}
+
+function toIsoFromDatetimeLocal(value) {
+    if (!value) return null;
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString();
+}
+
+async function checkAdmin() {
+
+    try {
+
+        // Supabase may need a short moment to restore the persisted
+        // session, especially when admin.html is opened immediately
+        // after signing in on the main site.
+        let session = null;
+        let sessionError = null;
+
+        for (let attempt = 0; attempt < 2; attempt++) {
+            const result = await supabaseClient.auth.getSession();
+            sessionError = result.error || null;
+            session = result.data?.session || null;
+
+            if (session || sessionError) break;
+
+            await new Promise(resolve => setTimeout(resolve, 250));
+        }
+
+        // One final server-side check helps when local session restoration
+        // is still catching up.
+        if (!session && !sessionError) {
+            try {
+                const userResult = await supabaseClient.auth.getUser();
+                if (userResult.data?.user) {
+                    const retry = await supabaseClient.auth.getSession();
+                    session = retry.data?.session || null;
+                    sessionError = retry.error || null;
+                }
+            } catch (userError) {
+                console.warn("Admin auth user check:", userError);
+            }
+        }
+
+        console.log("SUPABASE SESSION:", session ? "active" : "none");
+
+        if (sessionError) {
+            console.error("SESSION ERROR:", sessionError);
+            alert("Session error: " + sessionError.message);
+            return false;
+        }
+
+        if (!session) {
+            console.warn("NO ACTIVE SESSION");
+
+            // Keep the admin route available after login without showing
+            // a blocking browser alert.
+            try {
+                sessionStorage.setItem("llcAdminReturnPath", "/admin.html");
+            } catch (storageError) {}
+
+            showAdminGate("login", "No active session found on this page. Sign in with your administrator account.");
+            return false;
+        }
+
+        console.log("LOGGED IN USER:", session.user.id);
+        console.log("EMAIL:", session.user.email || "anonymous");
+
+        const {
+            data: isAdmin,
+            error: adminError
+        } = await supabaseClient.rpc("is_admin");
+
+        console.log("IS ADMIN:", isAdmin);
+
+        if (adminError) {
+            console.error("ADMIN CHECK ERROR:", adminError);
+            alert("Admin check failed: " + adminError.message);
+            return false;
+        }
+
+        if (isAdmin !== true) {
+            showAdminGate("denied", "Access denied. " + (session.user.email || "This account") + " is not an administrator.");
+            return false;
+        }
+
+        try {
+            sessionStorage.removeItem("llcAdminReturnPath");
+        } catch (storageError) {}
+
+        console.log("ADMIN ACCESS GRANTED");
+        return true;
+
+    } catch (error) {
+
+        console.error("ADMIN ERROR:", error);
+        alert("Admin error: " + error.message);
+        return false;
+    }
+}
+
+
+
+
+
+/* ============================================
+   NAVIGATION
+============================================ */
+
+function showSection(
+    sectionId,
+    button
+) {
+
+    document
+        .querySelectorAll(".section")
+        .forEach(section => {
+
+            section.classList.remove(
+                "active"
+            );
+
+        });
+
+
+    document
+        .querySelectorAll(".sidebar button")
+        .forEach(btn => {
+
+            btn.classList.remove(
+                "active"
+            );
+
+        });
+
+
+    document
+        .getElementById(sectionId)
+        .classList.add("active");
+
+
+    button.classList.add("active");
+
+
+    if (
+        sectionId ===
+        "tournaments"
+    ) {
+
+        loadTournaments();
+
+    }
+
+
+    if (
+        sectionId ===
+        "registrations"
+    ) {
+
+        loadRegistrations();
+
+    }
+
+    if (
+        sectionId ===
+        "matches"
+    ) {
+
+        loadMatches();
+
+    }
+
+    if (
+        sectionId ===
+        "results"
+    ) {
+
+        populateLeaderboardTournaments();
+
+    }
+
+    if (
+        sectionId ===
+        "announcements"
+    ) {
+
+        loadAnnouncements();
+
+    }
+
+    if (
+        sectionId ===
+        "dashboard"
+    ) {
+
+        loadDashboard();
+
+    }
+
+}
+
+
+/* ============================================
+   DASHBOARD
+============================================ */
+
+async function loadDashboard() {
+
+    const setStat = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = value;
+    };
+
+    try {
+        const [tournamentResult, teamResult, registrationResult] = await Promise.all([
+            supabaseClient
+                .from("tournaments")
+                .select("id,status,registration_open,registration_start_at,registration_end_at"),
+            supabaseClient
+                .from("teams")
+                .select("id", { count: "exact", head: true }),
+            supabaseClient
+                .from("registrations")
+                .select("id,payment_status,registration_status,tournament_id,tournaments(entry_fee)")
+        ]);
+
+        if (tournamentResult.error) throw tournamentResult.error;
+        if (teamResult.error) throw teamResult.error;
+        if (registrationResult.error) throw registrationResult.error;
+
+        const tournaments = Array.isArray(tournamentResult.data) ? tournamentResult.data : [];
+        const registrations = Array.isArray(registrationResult.data) ? registrationResult.data : [];
+        const now = Date.now();
+
+        let open = 0;
+        let live = 0;
+        let completed = 0;
+
+        tournaments.forEach(t => {
+            const status = String(t?.status || "").toLowerCase();
+            const start = t?.registration_start_at ? new Date(t.registration_start_at).getTime() : NaN;
+            const end = t?.registration_end_at ? new Date(t.registration_end_at).getTime() : NaN;
+
+            if (status === "completed") {
+                completed++;
+            } else if (["live", "ongoing"].includes(status)) {
+                live++;
+            }
+
+            const registrationOpen =
+                status === "open" &&
+                t?.registration_open !== false &&
+                (!Number.isFinite(start) || now >= start) &&
+                (!Number.isFinite(end) || now < end);
+
+            if (registrationOpen) open++;
+        });
+
+        let approved = 0;
+        let rejected = 0;
+        let pending = 0;
+        let revenue = 0;
+
+        registrations.forEach(reg => {
+            const status = String(reg?.registration_status || "").toLowerCase();
+            if (status === "approved") approved++;
+            else if (status === "rejected") rejected++;
+            else pending++;
+
+            if (String(reg?.payment_status || "").toLowerCase() === "paid") {
+                const tournament = Array.isArray(reg?.tournaments) ? reg.tournaments[0] : reg?.tournaments;
+                const fee = Number(tournament?.entry_fee);
+                if (Number.isFinite(fee) && fee > 0) revenue += fee;
+            }
+        });
+
+        setStat("statTournaments", tournaments.length);
+        setStat("statOpenTournaments", open);
+        setStat("statLiveTournaments", live);
+        setStat("statCompletedTournaments", completed);
+        setStat("statTeams", teamResult.count || 0);
+        setStat("statRegistrations", registrations.length);
+        setStat("statPending", pending);
+        setStat("statApproved", approved);
+        setStat("statRejected", rejected);
+        setStat("statRevenue", `₹${revenue.toLocaleString("en-IN")}`);
+
+    } catch (error) {
+        console.error("Dashboard statistics error:", error);
+        ["statTournaments","statOpenTournaments","statLiveTournaments","statCompletedTournaments","statTeams","statRegistrations","statPending","statApproved","statRejected","statRevenue"].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = id === "statRevenue" ? "₹—" : "—";
+        });
+    }
+}
+
+
+
+/* ============================================
+   LOAD TOURNAMENTS
+============================================ */
+
+async function loadTournaments() {
+
+    const tbody =
+        document.getElementById(
+            "tournamentTable"
+        );
+
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("tournaments")
+        .select("*")
+        .order(
+            "tournament_date",
+            {
+                ascending: false
+            }
+        );
+
+
+    if (error) {
+
+        console.error(error);
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8">
+                    Unable to load tournaments.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    if (!data.length) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8">
+                    No tournaments found.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    tbody.innerHTML =
+        data.map(tournament => `
+
+            <tr>
+
+                <td>
+                    <strong>
+                        ${escapeHTML(
+                            tournament.name
+                        )}
+                    </strong>
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        tournament.game
+                    )}
+                </td>
+
+                <td>
+                    ₹${escapeHTML(tournament.entry_fee ?? "-")}
+                </td>
+
+                <td>
+                    ₹${escapeHTML(tournament.prize_pool ?? "-")}
+                </td>
+
+                <td>
+                    ${escapeHTML(tournament.tournament_date || "-")}
+                </td>
+
+                <td>
+
+                    <span class="badge open">
+                        ${escapeHTML(
+                            tournament.status
+                        )}
+                    </span>
+
+                </td>
+
+                <td>
+                    ${(() => {
+                        const schedule = getRegistrationScheduleState(tournament);
+                        const badgeClass = schedule.key === "open" ? "open" : (schedule.key === "soon" ? "pending" : "rejected");
+                        return `<span class="badge ${badgeClass}">${schedule.icon} ${escapeHTML(schedule.label)}</span><br><small style="color:#888;">${escapeHTML(schedule.detail)}</small>`;
+                    })()}
+                    <br>
+                    <small style="color:#888;">Limit: ${tournament.max_teams ?? "-"}</small>
+                </td>
+
+                <td>
+
+                    <button
+                        class="secondary"
+                        onclick="toggleRegistrationLock(${tournament.id}, ${tournament.registration_open === false})">
+                        ${tournament.registration_open === false ? "UNLOCK REG" : "LOCK REG"}
+                    </button>
+
+                    <button
+                        class="secondary"
+                        onclick="editTournament(${tournament.id})">
+
+                        Edit
+
+                    </button>
+
+                    <button
+                        class="danger"
+                        onclick="deleteTournament(${tournament.id})">
+
+                        Delete
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `).join("");
+
+}
+
+
+/* ============================================
+   CREATE TOURNAMENT
+============================================ */
+
+function openTournamentModal() {
+
+    editingTournamentId = null;
+
+    document.getElementById(
+        "modalTitle"
+    ).innerText =
+        "Create Tournament";
+
+
+    clearTournamentForm();
+
+
+    document.getElementById(
+        "tournamentModal"
+    ).style.display =
+        "block";
+
+}
+
+
+/* ============================================
+   EDIT TOURNAMENT
+============================================ */
+
+async function editTournament(id) {
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("tournaments")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+
+    if (error) {
+
+        alert(
+            "Unable to load tournament."
+        );
+
+        return;
+
+    }
+
+
+    editingTournamentId = id;
+
+
+    document.getElementById(
+        "modalTitle"
+    ).innerText =
+        "Edit Tournament";
+
+
+    document.getElementById(
+        "tournamentName"
+    ).value =
+        data.name || "";
+
+
+    document.getElementById(
+        "tournamentDescription"
+    ).value =
+        data.description || "";
+
+
+    document.getElementById(
+        "tournamentGame"
+    ).value =
+        data.game || "Free Fire MAX";
+
+
+    document.getElementById(
+        "tournamentEntry"
+    ).value =
+        data.entry_fee || 0;
+
+
+    document.getElementById(
+        "tournamentPrize"
+    ).value =
+        data.prize_pool || 0;
+
+
+    document.getElementById(
+        "tournamentTeams"
+    ).value =
+        data.max_teams || 12;
+
+
+    document.getElementById(
+        "tournamentDate"
+    ).value =
+        data.tournament_date || "";
+
+
+    document.getElementById(
+        "tournamentTime"
+    ).value =
+        data.tournament_time || "";
+
+
+    document.getElementById(
+        "tournamentStatus"
+    ).value =
+        data.status || "open";
+
+    const registrationOpenSelect = document.getElementById("tournamentRegistrationOpen");
+    if (registrationOpenSelect) {
+        registrationOpenSelect.value = data.registration_open === false ? "false" : "true";
+    }
+
+    const registrationStartAt = document.getElementById("registrationStartAt");
+    const registrationEndAt = document.getElementById("registrationEndAt");
+    if (registrationStartAt) registrationStartAt.value = toDatetimeLocalInput(data.registration_start_at);
+    if (registrationEndAt) registrationEndAt.value = toDatetimeLocalInput(data.registration_end_at);
+
+
+    document.getElementById(
+        "tournamentModal"
+    ).style.display =
+        "block";
+
+}
+
+
+/* ============================================
+   MANUAL REGISTRATION LOCK / UNLOCK
+============================================ */
+
+async function toggleRegistrationLock(tournamentId, currentlyLocked) {
+    const nextOpen = !!currentlyLocked;
+    const action = nextOpen ? "unlock" : "lock";
+
+    if (!confirm(`Are you sure you want to ${action} registrations for this tournament?`)) {
+        return;
+    }
+
+    const { error } = await supabaseClient
+        .from("tournaments")
+        .update({ registration_open: nextOpen })
+        .eq("id", tournamentId);
+
+    if (error) {
+        console.error("Registration lock update error:", error);
+        alert("Unable to change registration access: " + error.message);
+        return;
+    }
+
+    await Promise.all([
+        loadTournaments(),
+        loadRegistrationTournamentFilter(),
+        loadDashboard()
+    ]);
+}
+
+
+/* ============================================
+   SAVE TOURNAMENT
+============================================ */
+
+async function saveTournament() {
+
+    const message =
+        document.getElementById(
+            "modalMessage"
+        );
+
+
+    const tournament = {
+
+        name:
+            document.getElementById(
+                "tournamentName"
+            ).value.trim(),
+
+        description:
+            document.getElementById(
+                "tournamentDescription"
+            ).value.trim(),
+
+        game:
+            document.getElementById(
+                "tournamentGame"
+            ).value.trim(),
+
+        entry_fee:
+            Number(
+                document.getElementById(
+                    "tournamentEntry"
+                ).value
+            ),
+
+        prize_pool:
+            Number(
+                document.getElementById(
+                    "tournamentPrize"
+                ).value
+            ),
+
+        max_teams:
+            Number(
+                document.getElementById(
+                    "tournamentTeams"
+                ).value
+            ),
+
+        tournament_date:
+            document.getElementById(
+                "tournamentDate"
+            ).value || null,
+
+        tournament_time:
+            document.getElementById(
+                "tournamentTime"
+            ).value || null,
+
+        status:
+            document.getElementById(
+                "tournamentStatus"
+            ).value,
+
+        registration_open: editingTournamentId
+            ? document.getElementById("tournamentRegistrationOpen")?.value !== "false"
+            : true,
+
+        registration_start_at: toIsoFromDatetimeLocal(
+            document.getElementById("registrationStartAt")?.value
+        ),
+
+        registration_end_at: toIsoFromDatetimeLocal(
+            document.getElementById("registrationEndAt")?.value
+        )
+
+    };
+
+
+    if (!tournament.name) {
+
+        message.innerText =
+            "Tournament name is required.";
+
+        return;
+
+    }
+
+
+    const startValue = document.getElementById("registrationStartAt")?.value || "";
+    const endValue = document.getElementById("registrationEndAt")?.value || "";
+    if ((startValue && !endValue) || (!startValue && endValue)) {
+        message.innerText = "Set both registration opening and closing times, or leave both empty.";
+        return;
+    }
+    if (startValue && endValue) {
+        const startMs = new Date(startValue).getTime();
+        const endMs = new Date(endValue).getTime();
+        if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+            message.innerText = "Registration closing time must be later than opening time.";
+            return;
+        }
+    }
+
+    message.innerText =
+        "Saving...";
+
+
+    let result;
+
+
+    if (editingTournamentId) {
+
+        result =
+            await supabaseClient
+                .from("tournaments")
+                .update(tournament)
+                .eq(
+                    "id",
+                    editingTournamentId
+                );
+
+    } else {
+
+        result =
+            await supabaseClient
+                .from("tournaments")
+                .insert(
+                    tournament
+                );
+
+    }
+
+
+    if (result.error) {
+
+        console.error(
+            result.error
+        );
+
+        message.innerText =
+            result.error.message;
+
+        return;
+
+    }
+
+
+    message.style.color =
+        "#35dd79";
+
+    message.innerText =
+        "Tournament saved!";
+
+
+    await loadTournaments();
+    await loadRegistrationTournamentFilter();
+
+    await loadDashboard();
+
+
+    setTimeout(() => {
+
+        closeTournamentModal();
+
+    }, 700);
+
+}
+
+
+/* ============================================
+   DELETE TOURNAMENT
+============================================ */
+
+async function deleteTournament(id) {
+
+    const confirmed =
+        confirm(
+            "Delete this tournament and ALL of its stored data?\n\n" +
+            "This will delete:\n" +
+            "• Registrations\n" +
+            "• Payment screenshots\n" +
+            "• Match results\n" +
+            "• Matches\n" +
+            "• Tournament-only teams and team members\n" +
+            "• The tournament itself\n\n" +
+            "This action cannot be undone."
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    const deleteButton =
+        document.querySelector(
+            `[onclick="deleteTournament(${id})"]`
+        );
+
+    if (deleteButton) {
+        deleteButton.disabled = true;
+        deleteButton.innerText = "Deleting...";
+    }
+
+    try {
+
+        // 1. Get registrations, teams and payment screenshot paths.
+        const {
+            data: registrations,
+            error: registrationFetchError
+        } = await supabaseClient
+            .from("registrations")
+            .select("id, team_id, payment_screenshot_path")
+            .eq("tournament_id", id);
+
+        if (registrationFetchError) {
+            throw registrationFetchError;
+        }
+
+        const registrationRows = registrations || [];
+
+        const teamIds = [
+            ...new Set(
+                registrationRows
+                    .map(row => row.team_id)
+                    .filter(Boolean)
+            )
+        ];
+
+        const paymentPaths = [
+            ...new Set(
+                registrationRows
+                    .map(row => row.payment_screenshot_path)
+                    .filter(Boolean)
+            )
+        ];
+
+        // 2. Get all matches for this tournament.
+        const {
+            data: matches,
+            error: matchFetchError
+        } = await supabaseClient
+            .from("matches")
+            .select("id")
+            .eq("tournament_id", id);
+
+        if (matchFetchError) {
+            throw matchFetchError;
+        }
+
+        const matchIds =
+            (matches || [])
+                .map(match => match.id)
+                .filter(Boolean);
+
+        // 3. Results belong to matches, so remove them first.
+        if (matchIds.length) {
+
+            const { error } =
+                await supabaseClient
+                    .from("results")
+                    .delete()
+                    .in("match_id", matchIds);
+
+            if (error) {
+                throw error;
+            }
+        }
+
+        // 4. Delete tournament matches.
+        {
+            const { error } =
+                await supabaseClient
+                    .from("matches")
+                    .delete()
+                    .eq("tournament_id", id);
+
+            if (error) {
+                throw error;
+            }
+        }
+
+        // 5. Delete tournament registrations.
+        {
+            const { error } =
+                await supabaseClient
+                    .from("registrations")
+                    .delete()
+                    .eq("tournament_id", id);
+
+            if (error) {
+                throw error;
+            }
+        }
+
+        // 6. Delete payment screenshots from the private storage bucket.
+        if (paymentPaths.length) {
+
+            const { error: storageError } =
+                await supabaseClient
+                    .storage
+                    .from("registration-payments")
+                    .remove(paymentPaths);
+
+            if (storageError) {
+                // Database deletion can still succeed, but report storage cleanup.
+                console.warn(
+                    "Payment screenshot cleanup warning:",
+                    storageError
+                );
+            }
+        }
+
+        // 7. Teams are not directly tied to tournaments in the current schema.
+        // Remove a team only when it has no registration left anywhere.
+        for (const teamId of teamIds) {
+
+            const {
+                count,
+                error: remainingRegistrationError
+            } = await supabaseClient
+                .from("registrations")
+                .select("id", {
+                    count: "exact",
+                    head: true
+                })
+                .eq("team_id", teamId);
+
+            if (remainingRegistrationError) {
+                console.warn(
+                    "Could not check remaining registrations for team " + teamId,
+                    remainingRegistrationError
+                );
+                continue;
+            }
+
+            if ((count || 0) === 0) {
+
+                const { error: memberDeleteError } =
+                    await supabaseClient
+                        .from("team_members")
+                        .delete()
+                        .eq("team_id", teamId);
+
+                if (memberDeleteError) {
+                    throw memberDeleteError;
+                }
+
+                const { error: teamDeleteError } =
+                    await supabaseClient
+                        .from("teams")
+                        .delete()
+                        .eq("id", teamId);
+
+                if (teamDeleteError) {
+                    throw teamDeleteError;
+                }
+            }
+        }
+
+        // 8. Delete the tournament itself last.
+        {
+            const { error } =
+                await supabaseClient
+                    .from("tournaments")
+                    .delete()
+                    .eq("id", id);
+
+            if (error) {
+                throw error;
+            }
+        }
+
+        // 9. Refresh every affected admin view immediately.
+        await Promise.all([
+            loadTournaments(),
+            loadRegistrationTournamentFilter(),
+            loadRegistrations(),
+            loadDashboard()
+        ]);
+
+        alert(
+            "Tournament and its tournament data were deleted successfully."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Delete tournament error:",
+            error
+        );
+
+        alert(
+            "Tournament deletion stopped:\n\n" +
+            (error.message || "Unknown error") +
+            "\n\nCheck the browser console for details."
+        );
+
+    } finally {
+
+        if (deleteButton) {
+            deleteButton.disabled = false;
+            deleteButton.innerText = "Delete";
+        }
+    }
+}
+
+
+/* ============================================
+   REGISTRATIONS
+============================================ */
+
+let registrationsRealtimeChannel = null;
+let dashboardRealtimeChannel = null;
+let registrationsRefreshTimer = null;
+let registrationsRefreshInProgress = false;
+let allRegistrationRows = [];
+
+function startRegistrationsRealtime() {
+
+    if (registrationsRealtimeChannel) {
+        supabaseClient.removeChannel(
+            registrationsRealtimeChannel
+        );
+    }
+
+    registrationsRealtimeChannel =
+        supabaseClient
+            .channel("admin-registrations-live")
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "registrations"
+                },
+                async (payload) => {
+                    console.log(
+                        "Registration changed:",
+                        payload
+                    );
+
+                    scheduleRegistrationsRefresh();
+                }
+            )
+            .subscribe((status) => {
+                console.log(
+                    "Admin registrations realtime:",
+                    status
+                );
+            });
+
+    if (dashboardRealtimeChannel) {
+        supabaseClient.removeChannel(
+            dashboardRealtimeChannel
+        );
+    }
+
+    dashboardRealtimeChannel =
+        supabaseClient
+            .channel("admin-dashboard-live")
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "tournaments"
+                },
+                async (payload) => {
+                    console.log(
+                        "Tournament changed:",
+                        payload
+                    );
+
+                    await Promise.all([
+                        loadDashboard(),
+                        loadTournaments(),
+                        loadRegistrationTournamentFilter()
+                    ]);
+                }
+            )
+            .subscribe((status) => {
+                console.log(
+                    "Admin dashboard realtime:",
+                    status
+                );
+            });
+
+    // Fallback sync every 30 seconds (realtime handles instant updates).
+    if (registrationsRefreshTimer) {
+        clearInterval(registrationsRefreshTimer);
+    }
+
+    registrationsRefreshTimer =
+        setInterval(
+            async () => {
+
+                if (
+                    document.hidden ||
+                    registrationsRefreshInProgress
+                ) {
+                    return;
+                }
+
+                await refreshAdminRegistrations(true);
+
+            },
+            30000
+        );
+}
+
+let registrationsRefreshDebounce = null;
+
+function scheduleRegistrationsRefresh() {
+    clearTimeout(registrationsRefreshDebounce);
+    registrationsRefreshDebounce = setTimeout(() => {
+        refreshAdminRegistrations(true);
+    }, 500);
+}
+
+async function refreshAdminRegistrations(
+    refreshDashboard = false
+) {
+
+    if (registrationsRefreshInProgress) {
+        return;
+    }
+
+    registrationsRefreshInProgress = true;
+
+    try {
+
+        await Promise.all([
+            loadRegistrations(),
+            loadRegistrationTournamentFilter()
+        ]);
+
+        if (refreshDashboard) {
+            await loadDashboard();
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Automatic admin sync error:",
+            error
+        );
+
+    } finally {
+
+        registrationsRefreshInProgress = false;
+
+    }
+}
+
+function populateRegistrationTournamentFilter(tournaments = null) {
+    const select = document.getElementById("registrationTournamentFilter");
+    if (!select) return;
+
+    const currentValue = select.value;
+    const list = tournaments || [];
+
+    select.innerHTML = '<option value="">All Tournaments</option>' +
+        list.map(t => `
+            <option value="${t.id}">${escapeHTML(t.name || "Unnamed Tournament")}</option>
+        `).join("");
+
+    if (currentValue && list.some(t => String(t.id) === String(currentValue))) {
+        select.value = currentValue;
+    }
+}
+
+async function loadRegistrationTournamentFilter() {
+    const { data, error } = await supabaseClient
+        .from("tournaments")
+        .select("id, name, tournament_date, status")
+        .eq("status", "open")
+        .order("tournament_date", { ascending: false });
+
+    if (error) {
+        console.error("Registration active tournament filter error:", error);
+        return;
+    }
+
+    populateRegistrationTournamentFilter(data || []);
+}
+
+function applyRegistrationFilters() {
+    const tournamentId = document.getElementById("registrationTournamentFilter")?.value || "";
+    const paymentStatus = document.getElementById("registrationPaymentFilter")?.value || "";
+    const registrationStatus = document.getElementById("registrationStatusFilter")?.value || "";
+
+    const filtered = allRegistrationRows.filter(reg => {
+        const tournamentMatch = !tournamentId || String(reg.tournament_id) === String(tournamentId);
+        const paymentMatch = !paymentStatus || reg.payment_status === paymentStatus;
+        const statusMatch = !registrationStatus || reg.registration_status === registrationStatus;
+        return tournamentMatch && paymentMatch && statusMatch;
+    });
+
+    renderRegistrationRows(filtered);
+
+    // Team management is scoped to the selected tournament.
+    loadRegisteredTeamsManager(tournamentId);
+
+    const summary = document.getElementById("registrationFilterSummary");
+    if (summary) {
+        const tournamentSelect = document.getElementById("registrationTournamentFilter");
+        const tournamentName = tournamentSelect?.selectedOptions?.[0]?.textContent || "All Tournaments";
+        const paymentName = document.getElementById("registrationPaymentFilter")?.selectedOptions?.[0]?.textContent || "All Payments";
+        const statusName = document.getElementById("registrationStatusFilter")?.selectedOptions?.[0]?.textContent || "All Statuses";
+        summary.textContent = `Showing ${filtered.length} of ${allRegistrationRows.length} registrations • ${tournamentName} • ${paymentName} • ${statusName}`;
+    }
+}
+
+function clearRegistrationFilters() {
+    const tournament = document.getElementById("registrationTournamentFilter");
+    const payment = document.getElementById("registrationPaymentFilter");
+    const status = document.getElementById("registrationStatusFilter");
+    if (tournament) tournament.value = "";
+    if (payment) payment.value = "";
+    if (status) status.value = "";
+    applyRegistrationFilters();
+}
+
+function renderRegistrationRows(rows) {
+    const tbody = document.getElementById("registrationTable");
+    if (!tbody) return;
+
+    if (!rows.length) {
+        tbody.innerHTML = `
+            <tr><td colspan="7">
+                <div class="loading">No registrations match the selected filters.</div>
+            </td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = rows.map(reg => `
+        <tr>
+            <td>${escapeHTML(reg.teams?.name || "-")}</td>
+            <td>${escapeHTML(reg.tournaments?.name || "-")}</td>
+            <td>${escapeHTML(reg.ign || "-")}</td>
+            <td>${escapeHTML(reg.free_fire_uid || "-")}</td>
+            <td>
+                <select onchange="updatePayment(${reg.id}, this.value)">
+                    <option value="pending" ${reg.payment_status === "pending" ? "selected" : ""}>Pending</option>
+                    <option value="not_paid" ${reg.payment_status === "not_paid" ? "selected" : ""}>Not Paid</option>
+                    <option value="paid" ${reg.payment_status === "paid" ? "selected" : ""}>Paid</option>
+                </select>
+            </td>
+            <td>
+                <select onchange="updateRegistrationStatus(${reg.id}, this.value)">
+                    <option value="registered" ${reg.registration_status === "registered" ? "selected" : ""}>Registered</option>
+                    <option value="approved" ${reg.registration_status === "approved" ? "selected" : ""}>Approved</option>
+                    <option value="rejected" ${reg.registration_status === "rejected" ? "selected" : ""}>Rejected</option>
+                </select>
+            </td>
+            <td>
+                <button class="secondary" onclick="viewTeam(${reg.team_id})">View Team</button>
+                <button class="danger" type="button" onclick="deleteRegisteredTeam(${reg.id})" style="margin-left:6px;">Delete</button>
+            </td>
+        </tr>
+    `).join("");
+}
+
+async function loadRegistrations() {
+
+    const { data, error } = await supabaseClient
+        .from("registrations")
+        .select(`
+            *,
+            tournaments ( name ),
+            teams ( name )
+        `)
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error(error);
+        const tbody = document.getElementById("registrationTable");
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="7">${escapeHTML(error.message)}</td></tr>`;
+        }
+        return;
+    }
+
+    const registrationsWithProof = await Promise.all(
+        (data || []).map(async reg => {
+            let paymentScreenshotUrl = null;
+            if (reg.payment_screenshot_path) {
+                const { data: signedData, error: signedError } = await supabaseClient
+                    .storage
+                    .from("registration-payments")
+                    .createSignedUrl(reg.payment_screenshot_path, 3600);
+
+                if (signedError) {
+                    console.error("Payment screenshot URL error:", reg.id, signedError);
+                } else {
+                    paymentScreenshotUrl = signedData?.signedUrl || null;
+                }
+            }
+
+            return { ...reg, paymentScreenshotUrl };
+        })
+    );
+
+    paymentScreenshotUrls.clear();
+    registrationsWithProof.forEach(reg => {
+        if (reg.paymentScreenshotUrl) {
+            paymentScreenshotUrls.set(String(reg.id), reg.paymentScreenshotUrl);
+        }
+    });
+
+    allRegistrationRows = registrationsWithProof;
+    applyRegistrationFilters();
+}
+
+
+/* ============================================
+   REGISTERED TEAM MANAGEMENT
+============================================ */
+
+let registeredTeamManagerRequest = 0;
+
+async function loadRegisteredTeamsManager(tournamentId) {
+    const container = document.getElementById("registeredTeamsManagerTable");
+    const info = document.getElementById("registrationTeamManagerInfo");
+    if (!container || !info) return;
+
+    if (!tournamentId) {
+        info.textContent = "Select a tournament to manage its registered teams.";
+        container.innerHTML = '<div class="loading">Select a tournament to view registered teams.</div>';
+        return;
+    }
+
+    const requestId = ++registeredTeamManagerRequest;
+    info.textContent = "Loading registered teams...";
+    container.innerHTML = '<div class="loading">Loading registered teams...</div>';
+
+    const { data, error } = await supabaseClient
+        .from("registrations")
+        .select(`
+            id,
+            tournament_id,
+            team_id,
+            player_id,
+            ign,
+            free_fire_uid,
+            payment_status,
+            registration_status,
+            created_at,
+            teams ( id, name )
+        `)
+        .eq("tournament_id", Number(tournamentId))
+        .order("created_at", { ascending: true });
+
+    if (requestId !== registeredTeamManagerRequest) return;
+
+    if (error) {
+        console.error("Registered team manager error:", error);
+        info.textContent = "Unable to load registered teams.";
+        container.innerHTML = `<div style="color:#ff6259;">${escapeHTML(error.message)}</div>`;
+        return;
+    }
+
+    const rows = data || [];
+    info.textContent = `${rows.length} registered team${rows.length === 1 ? "" : "s"}`;
+
+    if (!rows.length) {
+        container.innerHTML = '<div class="loading">No registered teams for this tournament.</div>';
+        return;
+    }
+
+    container.innerHTML = `
+        <table style="width:100%;"> 
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Team</th>
+                    <th>Captain</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rows.map((reg, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${escapeHTML(reg.teams?.name || "-")}</strong></td>
+                        <td>${escapeHTML(reg.ign || "-")}<br><small style="color:#777;">UID: ${escapeHTML(reg.free_fire_uid || "-")}</small></td>
+                        <td>${escapeHTML(reg.payment_status || "-")}</td>
+                        <td>${escapeHTML(reg.registration_status || "-")}</td>
+                        <td>
+                            <button class="secondary" type="button" onclick="viewTeam(${Number(reg.team_id)})">View Team</button>
+                            <button class="secondary" type="button" onclick="editRegisteredTeamName(${Number(reg.team_id)})">Edit Name</button>
+                            <button class="danger" type="button" onclick="deleteRegisteredTeam(${Number(reg.id)})">Delete</button>
+                        </td>
+                    </tr>
+                `).join("")}
+            </tbody>
+        </table>
+    `;
+}
+
+async function openAddRegisteredTeamModal() {
+    const tournamentSelect = document.getElementById("adminAddRegistrationTournament");
+    const teamSelect = document.getElementById("adminAddRegistrationTeam");
+    const teamNameInput = document.getElementById("adminAddRegistrationTeamName");
+    const newFields = document.getElementById("adminNewTeamFields");
+    const message = document.getElementById("addRegisteredTeamMessage");
+    const selectedTournament = document.getElementById("registrationTournamentFilter")?.value || "";
+
+    if (!tournamentSelect || !teamSelect) return;
+
+    message.textContent = "";
+    if (teamNameInput) teamNameInput.value = "";
+    if (newFields) newFields.style.display = "none";
+
+    tournamentSelect.innerHTML = '<option value="">Loading tournaments...</option>';
+    teamSelect.innerHTML = '<option value="">Loading teams...</option>';
+    document.getElementById("addRegisteredTeamModal").style.display = "flex";
+
+    const [{ data: tournaments, error: tournamentError }, { data: teams, error: teamError }] = await Promise.all([
+        supabaseClient.from("tournaments")
+            .select("id, name, status, max_teams, registration_open")
+            .eq("status", "open")
+            .order("tournament_date", { ascending: true }),
+        supabaseClient.from("teams")
+            .select("id, name, captain_id")
+            .order("name", { ascending: true })
+    ]);
+
+    if (tournamentError || teamError) {
+        message.style.color = "#ff6259";
+        message.textContent = (tournamentError || teamError).message;
+        return;
+    }
+
+    tournamentSelect.innerHTML =
+        '<option value="">Select tournament</option>' +
+        (tournaments || []).map(t =>
+            `<option value="${t.id}">${escapeHTML(t.name || "Unnamed Tournament")}</option>`
+        ).join("");
+
+    if (selectedTournament &&
+        (tournaments || []).some(t => String(t.id) === String(selectedTournament))) {
+        tournamentSelect.value = selectedTournament;
+    }
+
+    teamSelect.innerHTML =
+        '<option value="">Select existing team</option>' +
+        '<option value="__new__">＋ Create New Team</option>' +
+        (teams || []).map(t =>
+            `<option value="${t.id}" data-team-name="${escapeHTML(t.name || "")}">
+                ${escapeHTML(t.name || "Unnamed Team")}
+            </option>`
+        ).join("");
+}
+function closeAddRegisteredTeamModal() {
+    const modal = document.getElementById("addRegisteredTeamModal");
+    if (modal) modal.style.display = "none";
+}
+
+function handleAdminTeamSelectionChange() {
+    const select = document.getElementById("adminAddRegistrationTeam");
+    const nameInput = document.getElementById("adminAddRegistrationTeamName");
+    const newFields = document.getElementById("adminNewTeamFields");
+    const selected = select?.value || "";
+
+    if (selected === "__new__") {
+        if (nameInput) {
+            nameInput.value = "";
+            nameInput.focus();
+        }
+        if (newFields) newFields.style.display = "block";
+        return;
+    }
+
+    if (newFields) newFields.style.display = "none";
+
+    const option = select?.selectedOptions?.[0];
+    if (nameInput) {
+        nameInput.value = option?.getAttribute("data-team-name") || option?.textContent?.trim() || "";
+    }
+}
+
+async function saveAdminRegisteredTeam() {
+    const message = document.getElementById("addRegisteredTeamMessage");
+    const tournamentId = document.getElementById("adminAddRegistrationTournament")?.value;
+    const teamId = document.getElementById("adminAddRegistrationTeam")?.value;
+    const teamName = document.getElementById("adminAddRegistrationTeamName")?.value.trim() || "";
+    const captainIGN = document.getElementById("adminAddRegistrationCaptainIGN")?.value.trim() || null;
+    const captainUID = document.getElementById("adminAddRegistrationCaptainUID")?.value.trim() || null;
+    const paymentStatus = document.getElementById("adminAddRegistrationPayment")?.value || "paid";
+    const registrationStatus = document.getElementById("adminAddRegistrationStatus")?.value || "approved";
+    const utr = document.getElementById("adminAddRegistrationUTR")?.value.trim() || null;
+
+    if (!tournamentId) {
+        message.style.color = "#ff6259";
+        message.textContent = "Select a tournament.";
+        return;
+    }
+
+    if (!teamName) {
+        message.style.color = "#ff6259";
+        message.textContent = "Enter a team name.";
+        return;
+    }
+
+    if (utr && !/^\d{12}$/.test(utr)) {
+        message.style.color = "#ff6259";
+        message.textContent = "UTR must contain exactly 12 digits.";
+        return;
+    }
+
+    if (captainUID && !/^\d{5,20}$/.test(captainUID)) {
+        message.style.color = "#ff6259";
+        message.textContent = "Captain UID must contain 5–20 digits.";
+        return;
+    }
+
+    message.style.color = "#aaa";
+    message.textContent = "Checking team and tournament...";
+
+    const isNewTeam = teamId === "__new__";
+    let actualTeamId = null;
+    let team = null;
+    let captainMember = null;
+
+    try {
+        if (isNewTeam) {
+            const { data: newTeam, error: createTeamError } = await supabaseClient
+                .from("teams")
+                .insert({
+                    name: teamName,
+                    captain_id: null
+                })
+                .select("id, name, captain_id")
+                .single();
+
+            if (createTeamError) throw createTeamError;
+
+            team = newTeam;
+            actualTeamId = newTeam.id;
+
+            // If captain details were supplied, create the captain member record.
+            if (captainIGN || captainUID) {
+                const { data: member, error: memberError } = await supabaseClient
+                    .from("team_members")
+                    .insert({
+                        team_id: actualTeamId,
+                        player_id: null,
+                        player_slot: 1,
+                        ign: captainIGN || teamName,
+                        free_fire_uid: captainUID,
+                        is_captain: true,
+                        is_substitute: false
+                    })
+                    .select("ign, free_fire_uid, player_id, is_captain, player_slot")
+                    .single();
+
+                if (memberError) {
+                    // Keep the newly created team usable even if optional captain details fail.
+                    console.warn("Captain member creation warning:", memberError);
+                } else {
+                    captainMember = member;
+                }
+            }
+        } else {
+            if (!teamId) {
+                throw new Error("Select an existing team or choose Create New Team.");
+            }
+
+            actualTeamId = Number(teamId);
+
+            const { data: existing, error: existingError } = await supabaseClient
+                .from("registrations")
+                .select("id")
+                .eq("tournament_id", Number(tournamentId))
+                .eq("team_id", actualTeamId)
+                .limit(1);
+
+            if (existingError) throw existingError;
+
+            if (existing?.length) {
+                throw new Error("This team is already registered for this tournament.");
+            }
+
+            const { data: existingTeam, error: teamError } = await supabaseClient
+                .from("teams")
+                .select("id, name, captain_id")
+                .eq("id", actualTeamId)
+                .single();
+
+            if (teamError) throw teamError;
+
+            team = existingTeam;
+
+            const { data: updatedTeam, error: renameError } = await supabaseClient
+                .from("teams")
+                .update({ name: teamName })
+                .eq("id", actualTeamId)
+                .select("id, name, captain_id")
+                .single();
+
+            if (renameError) throw renameError;
+            team = updatedTeam;
+
+            const { data: member, error: captainError } = await supabaseClient
+                .from("team_members")
+                .select("ign, free_fire_uid, player_id, is_captain, player_slot")
+                .eq("team_id", actualTeamId)
+                .order("player_slot", { ascending: true })
+                .limit(1)
+                .maybeSingle();
+
+            if (captainError) {
+                console.warn("Captain member lookup warning:", captainError);
+            } else {
+                captainMember = member;
+            }
+        }
+
+        message.textContent = "Adding registration...";
+
+        const { error: insertError } = await supabaseClient
+            .from("registrations")
+            .insert({
+                tournament_id: Number(tournamentId),
+                team_id: actualTeamId,
+                player_id: team?.captain_id || captainMember?.player_id || null,
+                ign: captainIGN || captainMember?.ign || teamName,
+                free_fire_uid: captainUID || captainMember?.free_fire_uid || null,
+                payment_utr: utr,
+                payment_status: paymentStatus,
+                registration_status: registrationStatus
+            });
+
+        if (insertError) {
+            // Remove newly-created team if registration failed.
+            if (isNewTeam && actualTeamId) {
+                await supabaseClient.from("team_members").delete().eq("team_id", actualTeamId);
+                await supabaseClient.from("teams").delete().eq("id", actualTeamId);
+            }
+            throw insertError;
+        }
+
+        message.style.color = "#35dd79";
+        message.textContent = "Team added to the tournament successfully.";
+
+        // Refresh the exact tournament manager immediately so 5/12 -> 6/12
+        // (or 11/12 -> 12/12) is reflected without a page refresh.
+        await loadRegistrations();
+        await loadDashboard();
+        await loadRegistrationTournamentFilter();
+        await loadRegisteredTeamsManager(String(tournamentId));
+
+        // Re-read the tournament so the UI immediately reflects an automatic
+        // registration lock performed by the database after the last slot.
+        const { data: refreshedTournament } = await supabaseClient
+            .from("tournaments")
+            .select("id, registration_open, max_teams")
+            .eq("id", Number(tournamentId))
+            .single();
+
+        if (refreshedTournament?.registration_open === false) {
+            message.textContent = `Team added. Registration is now closed (${Number(refreshedTournament.max_teams || 0)}/${Number(refreshedTournament.max_teams || 0)} teams).`;
+        }
+
+        setTimeout(closeAddRegisteredTeamModal, 500);
+    } catch (error) {
+        console.error("Add registered team error:", error);
+        message.style.color = "#ff6259";
+        const errorText = String(error?.message || "");
+        if (/registration is closed|registration is full|maximum.*teams/i.test(errorText)) {
+            message.textContent = "Registration is closed. The tournament has reached its team limit or was locked by the organizer.";
+        } else {
+            message.textContent = errorText || "Unable to add the team.";
+        }
+    }
+}
+async function editRegisteredTeamName(teamId) {
+    const { data: team, error } = await supabaseClient
+        .from("teams")
+        .select("id, name")
+        .eq("id", Number(teamId))
+        .single();
+
+    if (error) {
+        alert("Unable to load team: " + error.message);
+        return;
+    }
+
+    const newName = prompt("Enter the new team name:", team.name || "");
+    if (newName === null) return;
+
+    const name = newName.trim();
+    if (!name) {
+        alert("Team name cannot be empty.");
+        return;
+    }
+
+    const { error: updateError } = await supabaseClient
+        .from("teams")
+        .update({ name })
+        .eq("id", Number(teamId));
+
+    if (updateError) {
+        alert("Unable to update team name: " + updateError.message);
+        return;
+    }
+
+    await loadRegistrations();
+    await loadDashboard();
+
+    const tournamentId = document.getElementById("registrationTournamentFilter")?.value || "";
+    await loadRegisteredTeamsManager(tournamentId);
+
+    alert("Team name updated successfully.");
+}
+
+async function deleteRegisteredTeam(registrationId) {
+    const registration = allRegistrationRows.find(r => Number(r.id) === Number(registrationId));
+    const teamName = registration?.teams?.name || "this team";
+
+    if (!confirm(`Remove ${teamName} from this tournament?\n\nThe registration will be deleted. The team's members/team record will be deleted only if the team is not registered in any other tournament.`)) {
+        return;
+    }
+
+    try {
+        const { data: reg, error: regError } = await supabaseClient
+            .from("registrations")
+            .select("id, team_id, payment_screenshot_path")
+            .eq("id", Number(registrationId))
+            .single();
+
+        if (regError) throw regError;
+
+        if (reg.payment_screenshot_path) {
+            const { error: storageError } = await supabaseClient.storage
+                .from("registration-payments")
+                .remove([reg.payment_screenshot_path]);
+            if (storageError) console.warn("Payment screenshot cleanup warning:", storageError);
+        }
+
+        const { error: deleteError } = await supabaseClient
+            .from("registrations")
+            .delete()
+            .eq("id", Number(registrationId));
+
+        if (deleteError) throw deleteError;
+
+        const { count, error: remainingError } = await supabaseClient
+            .from("registrations")
+            .select("id", { count: "exact", head: true })
+            .eq("team_id", reg.team_id);
+
+        if (remainingError) throw remainingError;
+
+        if ((count || 0) === 0) {
+            // Clean up the team only when it is no longer registered anywhere.
+            // If another table references the team, keep the team record rather
+            // than making the tournament deletion fail.
+            const { error: memberDeleteError } = await supabaseClient
+                .from("team_members")
+                .delete()
+                .eq("team_id", reg.team_id);
+
+            if (memberDeleteError) {
+                console.warn("Team member cleanup warning:", memberDeleteError);
+            }
+
+            const { error: teamDeleteError } = await supabaseClient
+                .from("teams")
+                .delete()
+                .eq("id", reg.team_id);
+
+            if (teamDeleteError) {
+                console.warn("Team record cleanup warning:", teamDeleteError);
+            }
+        }
+
+        await loadRegistrations();
+        await loadDashboard();
+
+        const tournamentId = document.getElementById("registrationTournamentFilter")?.value || "";
+        await loadRegisteredTeamsManager(tournamentId);
+    } catch (error) {
+        console.error("Delete registered team error:", error);
+        alert("Unable to delete the registered team: " + (error?.message || error));
+    }
+}
+
+
+/* ============================================
+   UPDATE PAYMENT
+============================================ */
+
+async function updatePayment(
+    id,
+    status
+) {
+
+    const {
+        error
+    } = await supabaseClient
+        .from("registrations")
+        .update({
+            payment_status: status
+        })
+        .eq(
+            "id",
+            id
+        );
+
+
+    if (error) {
+
+        alert(
+            error.message
+        );
+
+        return;
+
+    }
+
+
+    await loadDashboard();
+
+}
+
+
+/* ============================================
+   UPDATE REGISTRATION
+============================================ */
+
+async function updateRegistrationStatus(
+    id,
+    status
+) {
+
+    const {
+        error
+    } = await supabaseClient
+        .from("registrations")
+        .update({
+
+            registration_status:
+                status
+
+        })
+        .eq(
+            "id",
+            id
+        );
+
+
+    if (error) {
+
+        alert(
+            error.message
+        );
+
+    }
+
+}
+
+
+/* ============================================
+   PAYMENT SCREENSHOT
+============================================ */
+
+const paymentScreenshotUrls = new Map();
+
+
+function openPaymentScreenshot(id) {
+    const url = paymentScreenshotUrls.get(String(id));
+
+    if (!url) {
+        alert("Payment screenshot is not available.");
+        return;
+    }
+
+    window.open(url, "_blank", "noopener,noreferrer");
+}
+
+
+function viewPaymentScreenshot(id) {
+    const url = paymentScreenshotUrls.get(String(id));
+    const modal = document.getElementById("paymentScreenshotModal");
+    const content = document.getElementById("paymentScreenshotContent");
+
+    if (!url) {
+        alert("Payment screenshot is not available.");
+        return;
+    }
+
+    content.innerHTML = `
+        <img
+            src="${escapeHTML(url)}"
+            alt="Payment screenshot"
+            style="display:block; max-width:100%; max-height:70vh; margin:0 auto; object-fit:contain; border-radius:10px; border:1px solid #333; background:#080808;"
+        >
+    `;
+
+    modal.style.display = "flex";
+}
+
+
+function closePaymentScreenshot(event) {
+    if (event && event.target?.id !== "paymentScreenshotModal") return;
+
+    const modal = document.getElementById("paymentScreenshotModal");
+    if (modal) modal.style.display = "none";
+}
+
+
+/* ============================================
+   VIEW TEAM
+============================================ */
+
+async function viewTeam(teamId) {
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("team_members")
+        .select("*")
+        .eq(
+            "team_id",
+            teamId
+        )
+        .order(
+            "player_slot"
+        );
+
+
+    if (error) {
+
+        alert(
+            error.message
+        );
+
+        return;
+
+    }
+
+
+    const text =
+        data.map(player =>
+
+            `${player.player_slot}. ${
+                player.ign
+            } — UID: ${
+                player.free_fire_uid
+            }${
+                player.is_captain
+                    ? " (Captain)"
+                    : ""
+            }`
+
+        ).join("\n");
+
+
+    alert(
+        "TEAM MEMBERS\n\n" +
+        text
+    );
+
+}
+
+
+/* ============================================
+   MATCH MANAGEMENT
+============================================ */
+
+let editingMatchId = null;
+
+async function loadMatches() {
+
+    const table = document.getElementById("matchTable");
+
+    if (!table) return;
+
+    table.innerHTML = `
+        <tr>
+            <td colspan="8">
+                <div class="loading">Loading matches...</div>
+            </td>
+        </tr>
+    `;
+
+    const { data, error } = await supabaseClient
+        .from("matches")
+        .select(`
+            id,
+            tournament_id,
+            round_name,
+            match_number,
+            map_name,
+            match_date,
+            match_time,
+            status,
+            tournaments (
+                name
+            )
+        `)
+        .order("match_date", { ascending: true, nullsFirst: false })
+        .order("match_time", { ascending: true, nullsFirst: false })
+        .order("match_number", { ascending: true });
+
+    if (error) {
+
+        console.error("Load matches error:", error);
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="8">
+                    <div class="loading">${escapeHTML(error.message)}</div>
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    if (!data || data.length === 0) {
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="8">
+                    <div class="loading">
+                        No matches yet. Click "+ Create Match" to add one.
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    table.innerHTML = data.map(match => {
+
+        const tournamentName = match.tournaments?.name || "Unknown";
+        const date = match.match_date || "-";
+        const time = match.match_time
+            ? String(match.match_time).slice(0, 5)
+            : "-";
+
+        return `
+            <tr>
+                <td>${escapeHTML(tournamentName)}</td>
+                <td>${escapeHTML(match.round_name || "-")}</td>
+                <td>${escapeHTML(match.match_number ?? "-")}</td>
+                <td>${escapeHTML(match.map_name || "-")}</td>
+                <td>${escapeHTML(date)}</td>
+                <td>${escapeHTML(time)}</td>
+                <td>${escapeHTML(match.status || "scheduled")}</td>
+                <td>
+                    <button class="small" onclick="editMatch(${match.id})">Edit</button>
+                    <button class="small danger" onclick="deleteMatch(${match.id})">Delete</button>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+async function populateMatchTournaments(selectedId = null) {
+
+    const select = document.getElementById("matchTournament");
+
+    const { data, error } = await supabaseClient
+        .from("tournaments")
+        .select("id, name")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        select.innerHTML = `<option value="">Unable to load tournaments</option>`;
+        console.error(error);
+        return;
+    }
+
+    select.innerHTML =
+        `<option value="">Select tournament</option>` +
+        (data || []).map(t => `
+            <option value="${t.id}">${escapeHTML(t.name)}</option>
+        `).join("");
+
+    if (selectedId !== null) {
+        select.value = String(selectedId);
+    }
+}
+
+async function openMatchModal(match = null) {
+
+    editingMatchId = match ? match.id : null;
+
+    document.getElementById("matchModalTitle").innerText =
+        match ? "Edit Match" : "Create Match";
+
+    await populateMatchTournaments(
+        match?.tournament_id ?? null
+    );
+
+    document.getElementById("matchRound").value =
+        match?.round_name || "Round 1";
+
+    document.getElementById("matchNumber").value =
+        match?.match_number || 1;
+
+    document.getElementById("matchMap").value =
+        match?.map_name || "Bermuda";
+
+    document.getElementById("matchDate").value =
+        match?.match_date || "";
+
+    document.getElementById("matchTime").value =
+        match?.match_time
+            ? String(match.match_time).slice(0, 5)
+            : "";
+
+    document.getElementById("matchStatus").value =
+        match?.status || "scheduled";
+
+    let privateMatchLink = "";
+
+    if (match?.id) {
+        const { data: linkRow, error: linkError } = await supabaseClient
+            .from("match_links")
+            .select("link")
+            .eq("match_id", match.id)
+            .maybeSingle();
+
+        if (linkError) {
+            console.error("Load private match link error:", linkError);
+        } else {
+            privateMatchLink = linkRow?.link || "";
+        }
+    }
+
+    document.getElementById("matchLink").value = privateMatchLink;
+
+    document.getElementById("matchModalMessage").innerText = "";
+
+    document.getElementById("matchModal").style.display = "flex";
+}
+
+function closeMatchModal() {
+    document.getElementById("matchModal").style.display = "none";
+    editingMatchId = null;
+}
+
+async function saveMatch() {
+
+    const tournamentId =
+        document.getElementById("matchTournament").value;
+
+    const roundName =
+        document.getElementById("matchRound").value.trim();
+
+    const matchNumber =
+        Number(document.getElementById("matchNumber").value);
+
+    const mapName =
+        document.getElementById("matchMap").value;
+
+    const matchDate =
+        document.getElementById("matchDate").value || null;
+
+    const matchTime =
+        document.getElementById("matchTime").value || null;
+
+    const status =
+        document.getElementById("matchStatus").value;
+
+    const matchLink =
+        document.getElementById("matchLink").value.trim();
+
+    const message =
+        document.getElementById("matchModalMessage");
+
+    if (matchLink) {
+        let validLink = false;
+        try {
+            const u = new URL(matchLink);
+            validLink = u.protocol === "https:" || u.protocol === "http:";
+        } catch (e) {}
+
+        if (!validLink) {
+            message.innerText =
+                "Match link must start with http:// or https://";
+            return;
+        }
+    }
+
+    if (!tournamentId) {
+        message.innerText = "Please select a tournament.";
+        return;
+    }
+
+    if (!roundName) {
+        message.innerText = "Please enter the round name.";
+        return;
+    }
+
+    if (!Number.isInteger(matchNumber) || matchNumber < 1) {
+        message.innerText = "Match number must be 1 or greater.";
+        return;
+    }
+
+    const payload = {
+        tournament_id: Number(tournamentId),
+        round_name: roundName,
+        match_number: matchNumber,
+        map_name: mapName,
+        match_date: matchDate,
+        match_time: matchTime,
+        status: status
+    };
+
+    let savedMatchId = editingMatchId;
+
+    if (editingMatchId) {
+        const { error } = await supabaseClient
+            .from("matches")
+            .update(payload)
+            .eq("id", editingMatchId);
+
+        if (error) {
+            console.error("Save match error:", error);
+            message.innerText = error.message;
+            return;
+        }
+    } else {
+        const { data: insertedMatch, error } = await supabaseClient
+            .from("matches")
+            .insert(payload)
+            .select("id")
+            .single();
+
+        if (error) {
+            console.error("Save match error:", error);
+            message.innerText = error.message;
+            return;
+        }
+
+        savedMatchId = insertedMatch?.id;
+    }
+
+    // Match/room links are stored separately and protected by RLS.
+    if (!savedMatchId) {
+        message.innerText = "Match was saved, but its ID could not be determined.";
+        return;
+    }
+
+    if (matchLink) {
+        const { error: linkError } = await supabaseClient
+            .from("match_links")
+            .upsert({
+                match_id: savedMatchId,
+                link: matchLink,
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: "match_id"
+            });
+
+        if (linkError) {
+            console.error("Save private match link error:", linkError);
+            message.innerText = "Match saved, but the Free Fire link could not be saved: " + linkError.message;
+            return;
+        }
+    } else {
+        const { error: linkDeleteError } = await supabaseClient
+            .from("match_links")
+            .delete()
+            .eq("match_id", savedMatchId);
+
+        if (linkDeleteError) {
+            console.error("Delete private match link error:", linkDeleteError);
+            message.innerText = "Match saved, but the old Free Fire link could not be removed: " + linkDeleteError.message;
+            return;
+        }
+    }
+
+    closeMatchModal();
+    await loadMatches();
+    await loadDashboard();
+}
+
+async function editMatch(id) {
+
+    const { data, error } =
+        await supabaseClient
+            .from("matches")
+            .select("*")
+            .eq("id", id)
+            .single();
+
+    if (error) {
+        alert(error.message);
+        return;
+    }
+
+    await openMatchModal(data);
+}
+
+async function deleteMatch(id) {
+
+    if (!confirm(
+        "Delete this match? Linked results will also be deleted."
+    )) {
+        return;
+    }
+
+    const { error } =
+        await supabaseClient
+            .from("matches")
+            .delete()
+            .eq("id", id);
+
+    if (error) {
+        alert(error.message);
+        return;
+    }
+
+    await loadMatches();
+    await loadDashboard();
+}
+
+
+/* ============================================
+   RESULTS & LEADERBOARD
+============================================ */
+
+let editingResultId = null;
+
+async function populateLeaderboardTournaments(selectedId = null) {
+    const select = document.getElementById("leaderboardTournament");
+    if (!select) return;
+    const { data, error } = await supabaseClient.from("tournaments").select("id, name").order("created_at", { ascending: false });
+    if (error) { console.error("Tournament list error:", error); return; }
+    select.innerHTML = `<option value="">Select tournament</option>` +
+        (data || []).map(t => `<option value="${t.id}">${escapeHTML(t.name)}</option>`).join("");
+    if (selectedId !== null) select.value = String(selectedId);
+}
+
+async function loadResultsForTournament() {
+    const tournamentId = document.getElementById("leaderboardTournament")?.value;
+    const table = document.getElementById("resultTable");
+    if (!table) return;
+    if (!tournamentId) {
+        table.innerHTML = `<tr><td colspan="7"><div class="loading">Select a tournament to view results.</div></td></tr>`;
+        return;
+    }
+    const { data, error } = await supabaseClient.from("results").select(`
+        id, team_id, placement, placement_points, kill_points, total_points,
+        matches!inner (id, tournament_id, round_name, match_number, map_name),
+        teams (name)
+    `).eq("matches.tournament_id", Number(tournamentId));
+    if (error) {
+        console.error("Load results error:", error);
+        table.innerHTML = `<tr><td colspan="7"><div class="loading">${escapeHTML(error.message)}</div></td></tr>`;
+        return;
+    }
+    if (!data?.length) {
+        table.innerHTML = `<tr><td colspan="7"><div class="loading">No results entered yet.</div></td></tr>`;
+        return;
+    }
+    table.innerHTML = data.map(r => {
+        const m = r.matches || {};
+        const label = `${m.round_name || "Match"} #${m.match_number ?? "-"} · ${m.map_name || "-"}`;
+        return `<tr><td>${escapeHTML(label)}</td><td>${escapeHTML(r.teams?.name || "Unknown")}</td>
+            <td>${escapeHTML(r.placement ?? "-")}</td><td>${escapeHTML(r.placement_points ?? 0)}</td>
+            <td>${escapeHTML(r.kill_points ?? 0)}</td><td><strong>${escapeHTML(r.total_points ?? 0)}</strong></td>
+            <td><button class="small" onclick="editResult(${r.id})">Edit</button>
+            <button class="small danger" onclick="deleteResult(${r.id})">Delete</button></td></tr>`;
+    }).join("");
+}
+
+async function loadLeaderboard() {
+    const tournamentId = document.getElementById("leaderboardTournament")?.value;
+    const table = document.getElementById("leaderboardTable");
+    if (!table) return;
+    if (!tournamentId) {
+        table.innerHTML = `<tr><td colspan="6"><div class="loading">Select a tournament to view the leaderboard.</div></td></tr>`;
+        await loadResultsForTournament();
+        return;
+    }
+    const { data, error } = await supabaseClient.from("results").select(`
+        team_id, placement_points, kill_points, total_points, teams (name), matches!inner (tournament_id)
+    `).eq("matches.tournament_id", Number(tournamentId));
+    if (error) {
+        console.error("Leaderboard error:", error);
+        table.innerHTML = `<tr><td colspan="6"><div class="loading">${escapeHTML(error.message)}</div></td></tr>`;
+        return;
+    }
+    const grouped = new Map();
+    (data || []).forEach(row => {
+        const key = String(row.team_id);
+        if (!grouped.has(key)) grouped.set(key, { team: row.teams?.name || "Unknown", matches: 0, placement: 0, kills: 0, total: 0 });
+        const item = grouped.get(key);
+        item.matches += 1;
+        item.placement += Number(row.placement_points || 0);
+        item.kills += Number(row.kill_points || 0);
+        item.total += Number(row.total_points || 0);
+    });
+    const leaderboard = [...grouped.values()].sort((a,b) => b.total-a.total || b.kills-a.kills || b.placement-a.placement);
+    table.innerHTML = leaderboard.length ? leaderboard.map((row,i) => `<tr>
+        <td><strong>${i+1}</strong></td><td>${escapeHTML(row.team)}</td><td>${row.matches}</td>
+        <td>${row.placement}</td><td>${row.kills}</td><td><strong>${row.total}</strong></td></tr>`).join("")
+        : `<tr><td colspan="6"><div class="loading">No results entered yet.</div></td></tr>`;
+    await loadResultsForTournament();
+}
+
+
+function ffArenaExportDate() {
+    return new Date().toISOString().slice(0, 10);
+}
+
+
+/* ============================================
+   LAZY LOAD EXCEL LIBRARY (only when exporting)
+============================================ */
+
+let xlsxLoadPromise = null;
+
+function ensureXLSX() {
+    if (typeof XLSX !== "undefined") return Promise.resolve(true);
+    if (xlsxLoadPromise) return xlsxLoadPromise;
+
+    xlsxLoadPromise = new Promise(resolve => {
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+        script.onload = () => resolve(true);
+        script.onerror = () => {
+            xlsxLoadPromise = null;
+            resolve(false);
+        };
+        document.head.appendChild(script);
+    });
+
+    return xlsxLoadPromise;
+}
+
+async function exportRegistrationsXLSX() {
+    if (!(await ensureXLSX())) {
+        alert("Could not load the Excel export library. Check your internet connection and try again.");
+        return;
+    }
+
+    const tournamentId = document.getElementById("registrationTournamentFilter")?.value || "";
+    const paymentStatus = document.getElementById("registrationPaymentFilter")?.value || "";
+    const registrationStatus = document.getElementById("registrationStatusFilter")?.value || "";
+
+    const rows = (allRegistrationRows || []).filter(reg => {
+        const tournamentMatch = !tournamentId || String(reg.tournament_id) === String(tournamentId);
+        const paymentMatch = !paymentStatus || reg.payment_status === paymentStatus;
+        const statusMatch = !registrationStatus || reg.registration_status === registrationStatus;
+        return tournamentMatch && paymentMatch && statusMatch;
+    });
+
+    if (!rows.length) {
+        alert("There are no registrations matching the current filters.");
+        return;
+    }
+
+    const exportRows = rows.map(reg => ({
+        "Registration ID": reg.id ?? "",
+        "Tournament": reg.tournaments?.name || "",
+        "Team": reg.teams?.name || "",
+        "Captain IGN": reg.ign || "",
+        "Captain UID": reg.free_fire_uid || "",
+        "Payment Status": reg.payment_status || "",
+        "Registration Status": reg.registration_status || "",
+        "Created At": reg.created_at ? new Date(reg.created_at).toLocaleString() : ""
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportRows);
+    worksheet["!cols"] = [
+        { wch: 16 }, { wch: 24 }, { wch: 24 }, { wch: 24 },
+        { wch: 20 }, { wch: 18 }, { wch: 22 }, { wch: 24 }
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Registrations");
+
+    XLSX.writeFile(workbook, `lock-load-club-registrations-${ffArenaExportDate()}.xlsx`);
+}
+
+async function exportResultsXLSX() {
+    if (!(await ensureXLSX())) {
+        alert("Could not load the Excel export library. Check your internet connection and try again.");
+        return;
+    }
+
+    const tournamentId = document.getElementById("leaderboardTournament")?.value || "";
+    if (!tournamentId) {
+        alert("Select a tournament first, then export its results.");
+        return;
+    }
+
+    const { data, error } = await supabaseClient.from("results").select(`
+        id, team_id, placement, placement_points, kill_points, total_points,
+        matches!inner (id, tournament_id, round_name, match_number, map_name),
+        teams (name)
+    `).eq("matches.tournament_id", Number(tournamentId));
+
+    if (error) {
+        console.error("Export results error:", error);
+        alert(error.message);
+        return;
+    }
+
+    const results = data || [];
+    if (!results.length) {
+        alert("There are no results to export for this tournament.");
+        return;
+    }
+
+    const tournamentName = document.getElementById("leaderboardTournament")?.selectedOptions?.[0]?.textContent || "Tournament";
+
+    const resultRows = results.map(row => {
+        const match = row.matches || {};
+        return {
+            "Result ID": row.id ?? "",
+            "Match": `${match.round_name || "Match"} #${match.match_number ?? "-"}`,
+            "Map": match.map_name || "",
+            "Team": row.teams?.name || "Unknown",
+            "Placement": row.placement ?? "",
+            "Placement Points": row.placement_points ?? 0,
+            "Kill Points": row.kill_points ?? 0,
+            "Total Points": row.total_points ?? 0
+        };
+    });
+
+    const grouped = new Map();
+    results.forEach(row => {
+        const key = String(row.team_id);
+        if (!grouped.has(key)) {
+            grouped.set(key, {
+                team: row.teams?.name || "Unknown",
+                matches: 0,
+                placement: 0,
+                kills: 0,
+                total: 0
+            });
+        }
+        const item = grouped.get(key);
+        item.matches += 1;
+        item.placement += Number(row.placement_points || 0);
+        item.kills += Number(row.kill_points || 0);
+        item.total += Number(row.total_points || 0);
+    });
+
+    const leaderboardRows = [...grouped.values()]
+        .sort((a, b) => b.total - a.total || b.kills - a.kills || b.placement - a.placement)
+        .map((row, index) => ({
+            "Rank": index + 1,
+            "Team": row.team,
+            "Matches": row.matches,
+            "Placement Points": row.placement,
+            "Kill Points": row.kills,
+            "Total Points": row.total
+        }));
+
+    const workbook = XLSX.utils.book_new();
+
+    const resultsSheet = XLSX.utils.json_to_sheet(resultRows);
+    resultsSheet["!cols"] = [
+        { wch: 14 }, { wch: 20 }, { wch: 16 }, { wch: 24 },
+        { wch: 12 }, { wch: 18 }, { wch: 14 }, { wch: 16 }
+    ];
+    XLSX.utils.book_append_sheet(workbook, resultsSheet, "Results");
+
+    const leaderboardSheet = XLSX.utils.json_to_sheet(leaderboardRows);
+    leaderboardSheet["!cols"] = [
+        { wch: 10 }, { wch: 24 }, { wch: 12 }, { wch: 20 }, { wch: 16 }, { wch: 16 }
+    ];
+    XLSX.utils.book_append_sheet(workbook, leaderboardSheet, "Leaderboard");
+
+    const safeTournamentName = tournamentName.replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "tournament";
+    XLSX.writeFile(workbook, `lock-load-club-${safeTournamentName}-results-${ffArenaExportDate()}.xlsx`);
+}
+
+async function openResultModal(result = null) {
+    editingResultId = result?.id || null;
+    document.getElementById("resultModalTitle").innerText = result ? "Edit Result" : "Add Result";
+    document.getElementById("resultModalMessage").innerText = "";
+    await populateResultMatches(result?.matches?.tournament_id || document.getElementById("leaderboardTournament")?.value || null, result?.matches?.id || null);
+    await populateResultTeams(result?.matches?.id || null, result?.team_id || null);
+    document.getElementById("resultPlacement").value = result?.placement ?? "";
+    document.getElementById("resultPlacementPoints").value = result?.placement_points ?? 0;
+    document.getElementById("resultKillPoints").value = result?.kill_points ?? 0;
+    updateResultTotalPreview();
+    document.getElementById("resultModal").style.display = "flex";
+}
+
+async function populateResultMatches(tournamentId = null, selectedId = null) {
+    const select = document.getElementById("resultMatch");
+    if (!select) return;
+    let query = supabaseClient.from("matches").select("id, tournament_id, round_name, match_number, map_name")
+        .order("match_date", { ascending: true, nullsFirst: false }).order("match_time", { ascending: true, nullsFirst: false });
+    if (tournamentId) query = query.eq("tournament_id", Number(tournamentId));
+    const { data, error } = await query;
+    if (error) { console.error("Result matches error:", error); select.innerHTML = `<option value="">Unable to load matches</option>`; return; }
+    select.innerHTML = `<option value="">Select match</option>` + (data || []).map(m => `<option value="${m.id}">${escapeHTML(`${m.round_name || "Round"} #${m.match_number ?? "-"} · ${m.map_name || "-"}`)}</option>`).join("");
+    if (selectedId !== null) select.value = String(selectedId);
+}
+
+async function populateResultTeams(matchId = null, selectedTeamId = null) {
+    const select = document.getElementById("resultTeam");
+    if (!select) return;
+    matchId = matchId || document.getElementById("resultMatch")?.value || null;
+    if (!matchId) { select.innerHTML = `<option value="">Select a match first</option>`; return; }
+    const { data: match, error: matchError } = await supabaseClient.from("matches").select("tournament_id").eq("id", Number(matchId)).single();
+    if (matchError) { console.error("Match lookup error:", matchError); return; }
+    const { data, error } = await supabaseClient.from("registrations").select("team_id, teams(id, name)").eq("tournament_id", Number(match.tournament_id));
+    if (error) { console.error("Result teams error:", error); select.innerHTML = `<option value="">Unable to load teams</option>`; return; }
+    const unique = new Map();
+    (data || []).forEach(row => { if (row.team_id && row.teams) unique.set(String(row.team_id), row.teams); });
+    select.innerHTML = `<option value="">Select team</option>` + [...unique.values()].map(team => `<option value="${team.id}">${escapeHTML(team.name)}</option>`).join("");
+    if (selectedTeamId !== null) select.value = String(selectedTeamId);
+}
+
+function updateResultTotalPreview() {
+    const placement = Number(document.getElementById("resultPlacementPoints")?.value || 0);
+    const kills = Number(document.getElementById("resultKillPoints")?.value || 0);
+    const preview = document.getElementById("resultTotalPreview");
+    if (preview) preview.innerText = `Total Points: ${placement + kills}`;
+}
+
+async function saveResult() {
+    const matchId = Number(document.getElementById("resultMatch").value);
+    const teamId = Number(document.getElementById("resultTeam").value);
+    const placement = Number(document.getElementById("resultPlacement").value);
+    const placementPoints = Number(document.getElementById("resultPlacementPoints").value || 0);
+    const killPoints = Number(document.getElementById("resultKillPoints").value || 0);
+    const message = document.getElementById("resultModalMessage");
+    if (!matchId || !teamId) { message.innerText = "Please select a match and team."; return; }
+    if (!Number.isInteger(placement) || placement < 1) { message.innerText = "Placement must be 1 or greater."; return; }
+    if (placementPoints < 0 || killPoints < 0) { message.innerText = "Points cannot be negative."; return; }
+    const payload = { match_id: matchId, team_id: teamId, placement, placement_points: placementPoints, kill_points: killPoints, total_points: placementPoints + killPoints };
+    const result = editingResultId
+        ? await supabaseClient.from("results").update(payload).eq("id", editingResultId)
+        : await supabaseClient.from("results").insert(payload);
+    if (result.error) { console.error("Save result error:", result.error); message.innerText = result.error.message; return; }
+    closeResultModal();
+    await loadLeaderboard();
+}
+
+async function editResult(id) {
+    const { data, error } = await supabaseClient.from("results").select(`id, team_id, placement, placement_points, kill_points, total_points, matches(id, tournament_id, round_name, match_number, map_name)`).eq("id", id).single();
+    if (error) { alert(error.message); return; }
+    await openResultModal(data);
+}
+
+async function deleteResult(id) {
+    if (!confirm("Delete this result?")) return;
+    const { error } = await supabaseClient.from("results").delete().eq("id", id);
+    if (error) { alert(error.message); return; }
+    await loadLeaderboard();
+}
+
+function closeResultModal() {
+    document.getElementById("resultModal").style.display = "none";
+    editingResultId = null;
+}
+
+/* ============================================
+   ANNOUNCEMENT MANAGEMENT
+============================================ */
+
+let editingAnnouncementId = null;
+
+
+async function loadAnnouncements() {
+
+    const table =
+        document.getElementById("announcementTable");
+
+    if (!table) return;
+
+    table.innerHTML = `
+        <tr>
+            <td colspan="4">
+                <div class="loading">
+                    Loading announcements...
+                </div>
+            </td>
+        </tr>
+    `;
+
+
+    const { data, error } =
+        await supabaseClient
+            .from("announcements")
+            .select("*")
+            .order("created_at", {
+                ascending: false
+            });
+
+
+    if (error) {
+
+        console.error(
+            "Load announcements error:",
+            error
+        );
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="4">
+                    <div class="loading">
+                        ${escapeHTML(error.message)}
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+
+    if (!data || data.length === 0) {
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="4">
+                    <div class="loading">
+                        No announcements yet.
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+
+    table.innerHTML =
+        data.map(announcement => {
+
+            const created =
+                announcement.created_at
+                    ? new Date(
+                        announcement.created_at
+                    ).toLocaleString()
+                    : "-";
+
+
+            return `
+                <tr>
+
+                    <td>
+                        <strong>
+                            ${escapeHTML(
+                                announcement.title
+                            )}
+                        </strong>
+                    </td>
+
+                    <td>
+                        <div style="
+                            max-width:420px;
+                            white-space:pre-wrap;
+                            color:#bbb;
+                        ">
+                            ${escapeHTML(
+                                announcement.message
+                            )}
+                        </div>
+
+                        ${
+                            announcement.image_url
+                                ? `
+                                    <img
+                                        src="${escapeHTML(announcement.image_url)}"
+                                        alt="Announcement image"
+                                        style="
+                                            display:block;
+                                            max-width:180px;
+                                            max-height:110px;
+                                            object-fit:cover;
+                                            border-radius:8px;
+                                            margin-top:10px;
+                                            border:1px solid #333;
+                                        "
+                                    >
+                                  `
+                                : ""
+                        }
+                    </td>
+
+                    <td>
+                        ${escapeHTML(created)}
+                    </td>
+
+                    <td>
+
+                        <button
+                            class="small"
+                            onclick="editAnnouncement(
+                                ${announcement.id}
+                            )">
+                            Edit
+                        </button>
+
+                        <button
+                            class="small danger"
+                            onclick="deleteAnnouncement(
+                                ${announcement.id}
+                            )">
+                            Delete
+                        </button>
+
+                    </td>
+
+                </tr>
+            `;
+
+        }).join("");
+}
+
+
+let selectedAnnouncementImage = null;
+let currentAnnouncementImageUrl = null;
+
+
+function renderAnnouncementImagePreview(url = null) {
+
+    const preview =
+        document.getElementById(
+            "announcementImagePreview"
+        );
+
+    if (!preview) return;
+
+    preview.innerHTML =
+        url
+            ? `
+                <img
+                    src="${escapeHTML(url)}"
+                    alt="Current announcement image"
+                    style="
+                        max-width:240px;
+                        max-height:150px;
+                        object-fit:cover;
+                        border-radius:8px;
+                        border:1px solid #333;
+                    "
+                >
+              `
+            : "";
+}
+
+
+async function uploadAnnouncementImage(file) {
+
+    if (!file) {
+        return null;
+    }
+
+    const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif"
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+        throw new Error(
+            "Please choose a JPG, PNG, WEBP or GIF image."
+        );
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        throw new Error(
+            "Image must be 5 MB or smaller."
+        );
+    }
+
+    const extension =
+        file.name
+            .split(".")
+            .pop()
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+
+    const fileName =
+        `${crypto.randomUUID()}.${extension}`;
+
+    const filePath =
+        `announcements/${fileName}`;
+
+    const { error: uploadError } =
+        await supabaseClient
+            .storage
+            .from("announcement-images")
+            .upload(
+                filePath,
+                file,
+                {
+                    cacheControl: "3600",
+                    upsert: false,
+                    contentType: file.type
+                }
+            );
+
+    if (uploadError) {
+        throw uploadError;
+    }
+
+    const { data } =
+        supabaseClient
+            .storage
+            .from("announcement-images")
+            .getPublicUrl(filePath);
+
+    return data.publicUrl;
+}
+
+
+async function deleteAnnouncementImage(url) {
+
+    if (!url) return;
+
+    try {
+
+        const marker =
+            "/storage/v1/object/public/announcement-images/";
+
+        const index =
+            url.indexOf(marker);
+
+        if (index === -1) {
+            return;
+        }
+
+        const filePath =
+            decodeURIComponent(
+                url.substring(
+                    index + marker.length
+                )
+            );
+
+        await supabaseClient
+            .storage
+            .from("announcement-images")
+            .remove([filePath]);
+
+    } catch (error) {
+
+        console.warn(
+            "Could not delete old announcement image:",
+            error
+        );
+    }
+}
+
+
+function openAnnouncementModal(
+    announcement = null
+) {
+
+    editingAnnouncementId =
+        announcement
+            ? announcement.id
+            : null;
+
+    selectedAnnouncementImage = null;
+
+    currentAnnouncementImageUrl =
+        announcement?.image_url || null;
+
+
+    document.getElementById(
+        "announcementModalTitle"
+    ).innerText =
+        announcement
+            ? "Edit Announcement"
+            : "New Announcement";
+
+
+    document.getElementById(
+        "announcementTitle"
+    ).value =
+        announcement?.title || "";
+
+
+    document.getElementById(
+        "announcementMessage"
+    ).value =
+        announcement?.message || "";
+
+
+    const imageInput =
+        document.getElementById(
+            "announcementImage"
+        );
+
+    imageInput.value = "";
+
+    renderAnnouncementImagePreview(
+        currentAnnouncementImageUrl
+    );
+
+
+    document.getElementById(
+        "announcementModalMessage"
+    ).innerText = "";
+
+
+    document.getElementById(
+        "announcementModal"
+    ).style.display = "flex";
+}
+
+
+function closeAnnouncementModal() {
+
+    document.getElementById(
+        "announcementModal"
+    ).style.display = "none";
+
+    editingAnnouncementId = null;
+}
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const imageInput =
+        document.getElementById(
+            "announcementImage"
+        );
+
+    if (!imageInput) return;
+
+    imageInput.addEventListener(
+        "change",
+        () => {
+
+            selectedAnnouncementImage =
+                imageInput.files?.[0] || null;
+
+            if (selectedAnnouncementImage) {
+
+                const previewUrl =
+                    URL.createObjectURL(
+                        selectedAnnouncementImage
+                    );
+
+                renderAnnouncementImagePreview(
+                    previewUrl
+                );
+            } else {
+
+                renderAnnouncementImagePreview(
+                    currentAnnouncementImageUrl
+                );
+            }
+        }
+    );
+});
+
+async function saveAnnouncement() {
+
+    const title =
+        document.getElementById(
+            "announcementTitle"
+        ).value.trim();
+
+
+    const message =
+        document.getElementById(
+            "announcementMessage"
+        ).value.trim();
+
+
+    const status =
+        document.getElementById(
+            "announcementModalMessage"
+        );
+
+
+    if (!title) {
+
+        status.innerText =
+            "Please enter a title.";
+
+        return;
+    }
+
+
+    if (!message) {
+
+        status.innerText =
+            "Please enter a message.";
+
+        return;
+    }
+
+
+    // Image is optional.
+    // If no new image is selected, image_url stays null for a new
+    // announcement, or keeps the existing image when editing.
+    let imageUrl =
+        currentAnnouncementImageUrl || null;
+
+
+    if (selectedAnnouncementImage) {
+
+        try {
+
+            imageUrl =
+                await uploadAnnouncementImage(
+                    selectedAnnouncementImage
+                );
+
+        } catch (error) {
+
+            console.error(
+                "Announcement image upload error:",
+                error
+            );
+
+            status.innerText =
+                error.message || "Image upload failed.";
+
+            return;
+        }
+    }
+
+
+    const payload = {
+        title,
+        message,
+        image_url: imageUrl
+    };
+
+
+    let result;
+
+
+    if (editingAnnouncementId) {
+
+        result =
+            await supabaseClient
+                .from("announcements")
+                .update(payload)
+                .eq(
+                    "id",
+                    editingAnnouncementId
+                );
+
+    } else {
+
+        result =
+            await supabaseClient
+                .from("announcements")
+                .insert(payload);
+
+    }
+
+
+    if (result.error) {
+
+        console.error(
+            "Save announcement error:",
+            result.error
+        );
+
+        status.innerText =
+            result.error.message;
+
+        return;
+    }
+
+
+    if (
+        editingAnnouncementId &&
+        selectedAnnouncementImage &&
+        currentAnnouncementImageUrl
+    ) {
+        await deleteAnnouncementImage(
+            currentAnnouncementImageUrl
+        );
+    }
+
+
+    closeAnnouncementModal();
+
+    await loadAnnouncements();
+}
+
+
+async function editAnnouncement(id) {
+
+    const { data, error } =
+        await supabaseClient
+            .from("announcements")
+            .select("*")
+            .eq("id", id)
+            .single();
+
+
+    if (error) {
+
+        alert(error.message);
+
+        return;
+    }
+
+
+    openAnnouncementModal(data);
+}
+
+
+async function deleteAnnouncement(id) {
+
+    if (
+        !confirm(
+            "Delete this announcement?"
+        )
+    ) {
+        return;
+    }
+
+
+    const { data, error } =
+        await supabaseClient
+            .from("announcements")
+            .select("image_url")
+            .eq("id", id)
+            .single();
+
+    if (error) {
+        alert(error.message);
+        return;
+    }
+
+    const { error: deleteError } =
+        await supabaseClient
+            .from("announcements")
+            .delete()
+            .eq("id", id);
+
+    if (deleteError) {
+        alert(deleteError.message);
+        return;
+    }
+
+
+    if (data?.image_url) {
+        await deleteAnnouncementImage(
+            data.image_url
+        );
+    }
+
+    await loadAnnouncements();
+}
+
+
+/* ============================================
+   CLOSE MODAL
+============================================ */
+
+function closeTournamentModal() {
+
+    document.getElementById(
+        "tournamentModal"
+    ).style.display =
+        "none";
+
+}
+
+
+/* ============================================
+   CLEAR FORM
+============================================ */
+
+function clearTournamentForm() {
+
+    document.getElementById(
+        "tournamentName"
+    ).value = "";
+
+    document.getElementById(
+        "tournamentDescription"
+    ).value = "";
+
+    document.getElementById(
+        "tournamentGame"
+    ).value = "Free Fire MAX";
+
+    document.getElementById(
+        "tournamentEntry"
+    ).value = 100;
+
+    document.getElementById(
+        "tournamentPrize"
+    ).value = 1000;
+
+    document.getElementById(
+        "tournamentTeams"
+    ).value = 12;
+
+    document.getElementById(
+        "tournamentDate"
+    ).value = "";
+
+    document.getElementById(
+        "tournamentTime"
+    ).value = "";
+
+    document.getElementById(
+        "tournamentStatus"
+    ).value = "open";
+
+    const registrationOpenSelect = document.getElementById("tournamentRegistrationOpen");
+    if (registrationOpenSelect) {
+        registrationOpenSelect.value = "true";
+    }
+
+    const registrationStartAt = document.getElementById("registrationStartAt");
+    const registrationEndAt = document.getElementById("registrationEndAt");
+    if (registrationStartAt) registrationStartAt.value = "";
+    if (registrationEndAt) registrationEndAt.value = "";
+
+    document.getElementById(
+        "modalMessage"
+    ).innerText = "";
+
+}
+
+
+/* ============================================
+   LOGOUT
+============================================ */
+
+async function logout() {
+
+    await supabaseClient
+        .auth
+        .signOut();
+
+    window.location.href = "/";
+
+}
+
+
+/* ============================================
+   SECURITY
+============================================ */
+
+function escapeHTML(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+if (!window.__ffArenaRegistrationScheduleTimer) {
+    window.__ffArenaRegistrationScheduleTimer = setInterval(() => {
+        if (!document.hidden) loadTournaments();
+    }, 30000);
+}
+
+
+/* ============================================
+   AUTH STATE DEBUG
+============================================ */
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    console.log("AUTH EVENT:", event, session?.user?.id || null);
+});
+
+
+/* ============================================
+   START APP AFTER PAGE LOAD
+============================================ */
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+    try {
+
+        const isAdmin = await checkAdmin();
+
+        if (!isAdmin) {
+            return;
+        }
+
+        document.getElementById("resultPlacementPoints")?.addEventListener("input", updateResultTotalPreview);
+        document.getElementById("resultKillPoints")?.addEventListener("input", updateResultTotalPreview);
+
+        await Promise.all([
+            loadDashboard(),
+            loadTournaments(),
+            loadRegistrations(),
+            loadMatches(),
+            populateLeaderboardTournaments(),
+            loadAnnouncements(),
+            loadRegistrationTournamentFilter()
+        ]);
+
+        startRegistrationsRealtime();
+
+    } catch (error) {
+
+        console.error("Lock & Load Club Admin startup error:", error);
+
+        alert(
+            "Admin dashboard could not finish loading. Open F12 > Console for details."
+        );
+
+    }
+
+});
+
+</script>
+
+</body>
+
+</html>
