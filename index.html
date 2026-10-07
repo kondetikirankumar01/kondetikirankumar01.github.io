@@ -2242,6 +2242,32 @@ header .llc-brand-logo-img{
 }
 
 @media (max-width:700px){
+    /* Keep the More dropdown anchored to the right side of the mobile viewport. */
+    .more-nav{
+        position:static !important;
+    }
+
+    .more-menu{
+        position:fixed !important;
+        left:auto !important;
+        right:12px !important;
+        top:auto !important;
+        width:min(235px, calc(100vw - 24px)) !important;
+        max-height:calc(100vh - 110px);
+        overflow:auto;
+        transform:translateY(-5px) !important;
+        z-index:2000 !important;
+    }
+
+    .more-nav.open .more-menu{
+        transform:translateY(0) !important;
+    }
+
+    .more-menu::before{
+        left:auto !important;
+        right:34px !important;
+    }
+
     header{
         height:auto;
         min-height:64px;
@@ -9434,12 +9460,28 @@ html.light-theme .joined-summary-card{background:#fff;border-color:#ddd}.joined-
     startFFArenaRealtime();
 
     /* More navigation dropdown. */
+    function positionMoreMenu() {
+        const menu = document.getElementById("moreMenu");
+        const trigger = document.getElementById("moreNavTrigger");
+        if (!menu || !trigger || window.innerWidth > 700) return;
+        const rect = trigger.getBoundingClientRect();
+        const menuWidth = Math.min(235, Math.max(0, window.innerWidth - 24));
+        const right = 12;
+        const maxLeft = window.innerWidth - right - menuWidth;
+        const left = Math.max(12, maxLeft);
+        menu.style.left = left + "px";
+        menu.style.right = "auto";
+        menu.style.top = Math.min(window.innerHeight - 12 - Math.min(menu.offsetHeight || 320, window.innerHeight - 110), rect.bottom + 9) + "px";
+        menu.style.width = menuWidth + "px";
+    }
+
     function toggleMoreMenu() {
         const wrapper = document.getElementById("moreNav");
         const trigger = document.getElementById("moreNavTrigger");
         if (!wrapper) return;
         const open = wrapper.classList.toggle("open");
         if (trigger) trigger.setAttribute("aria-expanded", String(open));
+        if (open) requestAnimationFrame(positionMoreMenu);
     }
 
     function closeMoreMenu() {
@@ -9448,6 +9490,16 @@ html.light-theme .joined-summary-card{background:#fff;border-color:#ddd}.joined-
         if (wrapper) wrapper.classList.remove("open");
         if (trigger) trigger.setAttribute("aria-expanded", "false");
     }
+
+    window.addEventListener("resize", () => {
+        const wrapper = document.getElementById("moreNav");
+        if (wrapper && wrapper.classList.contains("open")) positionMoreMenu();
+    }, { passive: true });
+
+    window.addEventListener("scroll", () => {
+        const wrapper = document.getElementById("moreNav");
+        if (wrapper && wrapper.classList.contains("open")) positionMoreMenu();
+    }, { passive: true });
 
     document.addEventListener("click", (event) => {
         const wrapper = document.getElementById("moreNav");
